@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.min.css" media="screen" />
+    <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.9.0.custom.js"></script>
+    <script type="text/javascript" src="js/misc.js"></script>
+    <script type="text/javascript" src="js/gCodeReader.js"></script>
+    <script type="text/javascript" src="js/renderer.js"></script>
+</head>
+<body>
+<div id="wrap">
+    <div id="control">
+        <input type="file" id="file" name="files" />
+        <div id="drop_zone">Drop file here</div>
+        <output id="list"></output>
+
+        <div id="control_bottom">
+            <div id="options">
+                <input type="checkbox" id="sortLayersCheckbox" value="1" onclick="GCODE.miscObject.processOptions()" checked>Sort layers by Z</input><br>
+                <input type="checkbox" id="purgeEmptyLayersCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
+                <input type="checkbox" id="showMovesCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
+            </div>
+            <div id="main_button_block">
+                <input id="submit_button" type="submit" value="Parse GCode" disabled=true />
+            </div>
+        </div>
+
+    </div>
+    <div id="gcode">
+        <canvas id="canvas" width="650" height="650"></canvas>
+        <div id="slider-vertical"></div>
+        <div id="slider-horizontal"></div>
+    </div>
+</div>
+
+<script>
+    window.onload = GCODE.miscObject.initHandlers;
+</script>
+</body>
+</html>

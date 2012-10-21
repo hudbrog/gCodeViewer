@@ -1,0 +1,68 @@
+body,
+html {
+    margin:0;
+    padding:0;
+    color:#000;
+    background-image: url(cupertino/images/background.jpg);
+}
+#wrap {
+    width:1200px;
+    height: 700px;
+    background:#ffffff;
+    position: absolute;
+    top: 50%;
+    margin-top: -350px;
+    left: 50%;
+    margin-left: -600px;
+    border: 5px outset #bbb;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+}
+#control {
+    background: #ffffff;
+    float:left;
+    width:500px;
+    height: 700px;
+}
+#control_bottom {
+    position: absolute;
+    bottom: 0;
+    width: 500px;
+}
+#main_button_block {
+    float: right;
+}
+#options{
+    float: left;
+}
+#gcode {
+    background: #ffffff;
+    float:right;
+    width: 680px;
+    height: 700px;
+    border-width: 2px;
+    border-style: none none none solid;
+}
+#drop_zone {
+    border: 2px dashed #bbb;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    font: 20pt bold, "Vollkorn";
+    color: #bbb
+}
+#slider-vertical {
+    height: 650px;
+    width: 10px;
+    float: right;
+}
+#slider-horizontal {
+    height: 10px;
+    width: 650px;
+
+}
+
+
