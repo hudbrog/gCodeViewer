@@ -39,7 +39,9 @@ GCODE.miscObject = (function(){
 
             document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
 //            document.getElementById('submit_button').disabled=false;
-            $( "input[type=submit], a, button" ).button("enable");
+
+            $( "#submit_button" ).button("enable");
+
         },
 
         handleDragOver: function(evt) {
@@ -57,13 +59,26 @@ GCODE.miscObject = (function(){
             document.getElementById('file').addEventListener('change', GCODE.miscObject.handleFileSelect, false);
 
             $(function() {
-                $( "input[type=submit], a, button" )
+                $( "#submit_button" )
                     .button()
                     .click(function( event ) {
+                        _gaq.push(['_trackEvent', 'renderButton', 'clicked']);
                         GCODE.gCodeReader.parseGCode();
                         event.preventDefault();
                     });
             });
+
+            $(function() {
+                $( "#3d_button" )
+                    .button()
+                    .click(function( event ) {
+                        GCODE.renderer3d.init();
+                        event.preventDefault();
+                    });
+            });
+
+
+            GCODE.miscObject.processOptions();
 
         },
 

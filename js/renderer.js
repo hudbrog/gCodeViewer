@@ -13,6 +13,7 @@ GCODE.renderer = (function(){
     var zoomFactor= 3, zoomFactorDelta = 0.4;
     var gridSizeX=200,gridSizeY=200,gridStep=10;
     var ctxHeight, ctxWidth;
+    var prevx=0, prevy=0;
 
 //    var colorGrid="#bbbbbb", colorLine="#000000";
     var sliderHor, sliderVer;
@@ -173,7 +174,6 @@ GCODE.renderer = (function(){
         layerNumStore=layerNum;
         progressStore = progress;
         var cmds = model[layerNum];
-        var prevx=0, prevy=0;
 
         var p1 = ctx.transformedPoint(0,0);
         var p2 = ctx.transformedPoint(canvas.width,canvas.height);
@@ -185,8 +185,8 @@ GCODE.renderer = (function(){
         ctx.beginPath();
         for(i=0;i<progress;i++){
 //                console.log(cmds[i]);
-            if(!cmds[i].x)cmds[i].x=prevx;
-            if(!cmds[i].y)cmds[i].y=prevy;
+            if(!cmds[i].x)cmds[i].x=prevx/zoomFactor;
+            if(!cmds[i].y)cmds[i].y=prevy/zoomFactor;
             if(!cmds[i].extrude){
                 ctx.stroke();
                 if(renderOptions["showMoves"]){
@@ -217,6 +217,7 @@ GCODE.renderer = (function(){
         init: function(){
             startCanvas();
             initialized = true;
+            ctx.translate(30,30);
         },
         setOption: function(options){
             for(var opt in options){
@@ -227,6 +228,9 @@ GCODE.renderer = (function(){
             model = mdl;
             sliderVer =  $( "#slider-vertical" );
             sliderHor = $( "#slider-horizontal" );
+            prevx=0;
+            prevy=0;
+
 
             if(!initialized)this.init();
 

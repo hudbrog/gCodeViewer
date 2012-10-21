@@ -10,7 +10,7 @@ GCODE.gCodeReader = (function(){
     var z_heights = {};
     var model = [];
     var gCodeOptions = {
-        sortLayers: true,
+        sortLayers: false,
         purgeEmptyLayers: true
     };
 
@@ -134,6 +134,7 @@ GCODE.gCodeReader = (function(){
             if(gCodeOptions["sortLayers"])sortLayers();
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);
+            GCODE.renderer3d.doRender(model);
         }
 
     }
