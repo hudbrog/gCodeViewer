@@ -29,7 +29,7 @@ GCODE.renderer = (function(){
         colorLine: "#000000",
         colorMove: "#00ff00"
     };
-
+    var $slideMe;
 
 
     var reRender = function(){
@@ -246,7 +246,7 @@ GCODE.renderer = (function(){
 
 //TODO: need to remove UI stuff from here
 
-            var $slideMe = $('<span/>')
+            $slideMe = $('<span/>')
                 .css({ 'position' : 'absolute' , left : 40, 'bottom': 0, 'color':'#0070A3' , 'display' : 'block', 'width':80})
                 .text("Layer:"+layerNum)
                 .hide();

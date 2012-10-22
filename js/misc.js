@@ -65,19 +65,12 @@ GCODE.miscObject = (function(){
                     .button()
                     .click(function( event ) {
                         _gaq.push(['_trackEvent', 'renderButton', 'clicked']);
+                        $("#tabs-min").tabs("select", "#tabs-1");
                         GCODE.gCodeReader.parseGCode();
                         event.preventDefault();
                     });
             });
 
-            $(function() {
-                $( "#3d_button" )
-                    .button()
-                    .click(function( event ) {
-                        GCODE.renderer3d.init();
-                        event.preventDefault();
-                    });
-            });
 
             $('#tabs-min').bind('tabsselect', function(event, ui) {
                 console.log("got tab select");

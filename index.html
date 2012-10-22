@@ -7,6 +7,7 @@
     <script type="text/javascript" src="js/jquery-1.8.2.js"></script>
     <script type="text/javascript" src="js/jquery-ui-1.9.0.custom.js"></script>
     <script type="text/javascript" src="js/three.js"></script>
+    <script type="text/javascript" src="js/TrackballControls.js"></script>
     <script type="text/javascript" src="js/misc.js"></script>
     <script type="text/javascript" src="js/gCodeReader.js"></script>
     <script type="text/javascript" src="js/renderer.js"></script>
@@ -32,6 +33,12 @@
     </script>
 </head>
 <body>
+
+<div id="dialog-modal" title="Basic modal dialog" style="display: none;">
+    Generating 3d model<br>
+    <div id="progressbar"></div>
+</div>
+
 <div id="wrap">
     <div id="control">
         <div id="file_block">
@@ -45,11 +52,10 @@
             <div id="options">
                 <input type="checkbox" id="sortLayersCheckbox" value="1" onclick="GCODE.miscObject.processOptions()">Sort layers by Z</input><br>
                 <input type="checkbox" id="purgeEmptyLayersCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
-                <input type="checkbox" id="showMovesCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
+                <input type="checkbox" id="showMovesCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" title="Shows moves made by printing head when it was not extruding plastic. Green lines represent that." checked>Show non-extrusion moves</input><br>
             </div>
             <div id="main_button_block">
                 <input id="submit_button" class="mbut" type="submit" value="Render GCode" disabled=true />
-                <input id="3d_button" class="mbut" type="submit" value="init 3d" />
             </div>
         </div>
 

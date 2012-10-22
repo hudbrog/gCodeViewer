@@ -168,17 +168,18 @@ GCODE.renderer3d = (function(){
         },
         setModel: function(mdl){
             model = mdl;
+            modelLoaded=false;
         },
         doRender: function(){
 //            model = mdl;
-            if(model)modelLoaded=true;
-            else return;
             prevX=0;
             prevY=0;
             prevZ=0;
             object = new THREE.Object3D();
             geometry = new THREE.Geometry();
             this.init();
+            if(model)modelLoaded=true;
+            else return;
 //            buildModel();
             buildModelIteratively();
 
