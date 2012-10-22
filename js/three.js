@@ -703,9 +703,9 @@ THREE.Vector3.prototype = {
 
 	add: function ( a, b ) {
 
-		this.x = a.x + b.x;
-		this.y = a.y + b.y;
-		this.z = a.z + b.z;
+		this.x = parseFloat(a.x) + parseFloat(b.x);
+		this.y = parseFloat(a.y) + parseFloat(b.y);
+		this.z = parseFloat(a.z) + parseFloat(b.z);
 
 		return this;
 

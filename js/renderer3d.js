@@ -5,44 +5,79 @@
  */
 GCODE.renderer3d = (function(){
 // ***** PRIVATE ******
+    var modelLoaded=false;
     var model;
     var prevX=0, prevY= 0, prevZ=0;
     var sliderHor, sliderVer;
     var object;
     var geometry;
 
-    // set the scene size
-    var WIDTH = 650,
-        HEIGHT = 630;
-
-    // set some camera attributes
+    var WIDTH = 650, HEIGHT = 630;
     var VIEW_ANGLE = 70,
         ASPECT = WIDTH / HEIGHT,
         NEAR = 0.1,
         FAR = 10000;
 
-    // create a renderer,
-    // and a scene
-    var renderer = new THREE.WebGLRenderer({clearColor:0x000000, clearAlpha: 1});
-    var scene = new THREE.Scene();
-    var camera =
-        new THREE.PerspectiveCamera(
-            VIEW_ANGLE,
-            ASPECT,
-            NEAR,
-            FAR);
-
+    var renderer = new THREE.WebGLRenderer({clearColor:0xffffff, clearAlpha: 1});
+    var scene;
+    var camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
+    var controls;
     var halfWidth = window.innerWidth / 2;
     var halfHeight = window.innerHeight / 2;
     var mouseX = 0, mouseY = 0;
 
-
     var renderOptions = {
         showMoves: true,
-        colorLine: new THREE.Color(0xffffff),
-        colorMove: new THREE.Color(0x00ff00)
+        colorLine: 0x000000,
+        colorMove: 0x00ff00
     };
 
+    var render = function(){
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(render);
+    };
+
+    var buildModelIteration = function(layerNum){
+        var j;
+        var cmds  = model[layerNum];
+        if(!cmds)return;
+        for(j=0;j<cmds.length;j++){
+            if(!cmds[j])continue;
+            if(!cmds[j].x)cmds[j].x=prevX;
+            if(!cmds[j].y)cmds[j].y=prevY;
+            if(!cmds[j].z)cmds[j].z=prevZ;
+            if(!cmds[j].extrude){
+            }
+            else {
+                geometry.vertices.push( new THREE.Vector3(prevX, prevY, prevZ));
+                geometry.vertices.push( new THREE.Vector3(cmds[j].x, cmds[j].y, cmds[j].z));
+            }
+            prevX = cmds[j].x;
+            prevY = cmds[j].y;
+            prevZ = cmds[j].z;
+        }
+    };
+
+    var buildModelIteratively = function(){
+        var i;
+
+        for(i=0;i<model.length;i+=3){
+            buildModelIteration(i);
+            //TODO: need to remove UI stuff from here
+            $(function() {
+                $( "#progressbar" ).progressbar({
+                    value: i/model.length*100
+                });
+            });
+            setTimeout(50);
+        }
+        var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 1, opacity: 0.4});
+        geometry.computeBoundingBox();
+        object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));
+        var center = new THREE.Vector3().add(geometry.boundingBox.min, geometry.boundingBox.max).divideScalar(2);
+        object.position = center.multiplyScalar(-1);
+    }
 
     var buildModel = function(){
         var i,j;
@@ -61,28 +96,30 @@ GCODE.renderer3d = (function(){
                 else {
                     geometry.vertices.push( new THREE.Vector3(prevX, prevY, prevZ));
                     geometry.vertices.push( new THREE.Vector3(cmds[j].x, cmds[j].y, cmds[j].z));
-//                    geometry.colors.push(renderOptions["colorLine"]);
                 }
                 prevX = cmds[j].x;
                 prevY = cmds[j].y;
                 prevZ = cmds[j].z;
             }
+//TODO: need to remove UI stuff from here
+            $(function() {
+                $( "#progressbar" ).progressbar({
+                    value: i/model.length*100
+                });
+            });
+
         }
-        var lineMaterial = new THREE.LineBasicMaterial({color: 0xFFFFFF, lineWidth: 2});
-        object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));
+        var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 1, opacity: 0.4});
         geometry.computeBoundingBox();
-//        var center = new THREE.Vector3()
-//            .add(geometry.boundingBox.min, geometry.boundingBox.max)
-//            .divideScalar(2);
-//        var scale = 3; // TODO: Auto size
-//        object.position = center.multiplyScalar(-scale);
-//        object.scale.multiplyScalar(10);
+        object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));
+        var center = new THREE.Vector3().add(geometry.boundingBox.min, geometry.boundingBox.max).divideScalar(2);
+        object.position = center.multiplyScalar(-1);
     };
 
     var debugAxis = function(axisLength){
         //Shorten the vertex function
         function v(x,y,z){
-            return new THREE.Vertex(new THREE.Vector3(x,y,z));
+            return new THREE.Vector3(x,y,z);
         }
 
         //Create axis (point1, point2, colour)
@@ -103,36 +140,47 @@ GCODE.renderer3d = (function(){
 // ***** PUBLIC *******
     return {
         init: function(){
+            modelLoaded = false;
 
-            // get the DOM element to attach to
-            // - assume we've got jQuery to hand
+            scene = new THREE.Scene()
             var $container = $('#3d_container');
-
-            // the camera starts at 0,0,0
-            // so pull it back
-            camera.position.y = 300;
-            camera.position.z = 400;
-            camera.position.x = 200;
-            camera.lookAt(new THREE.Vector3(0,0,0));
-
-            // add the camera to the scene
+            camera.position.z = 200;
             scene.add(camera);
-
-            // start the renderer
             renderer.setSize(WIDTH, HEIGHT);
-
-            // attach the render-supplied DOM element
             $container.append(renderer.domElement);
+
+            controls = new THREE.TrackballControls(camera);
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+
+            controls.noZoom = false;
+            controls.noPan = false;
+
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
+
+            controls.keys = [ 65, 83, 68 ];
+
         },
-        doRender: function(mdl){
+        isModelReady: function(){
+            return modelLoaded;
+        },
+        setModel: function(mdl){
             model = mdl;
+        },
+        doRender: function(){
+//            model = mdl;
+            if(model)modelLoaded=true;
+            else return;
             prevX=0;
             prevY=0;
             prevZ=0;
             object = new THREE.Object3D();
             geometry = new THREE.Geometry();
             this.init();
-            buildModel();
+//            buildModel();
+            buildModelIteratively();
 
             scene.add(object);
             debugAxis(100);
@@ -142,18 +190,8 @@ GCODE.renderer3d = (function(){
                 mouseY = e.clientY - halfHeight;
             };
             // Action!
-            var render = function(){
-//                var time = new Date().getTime() * 0.0007;
-//
-//                camera.position.y += (- mouseY - camera.position.y) * 0.05;
-//                camera.position.z = Math.sin( 0.1 * time) *  750;
-//                camera.position.x = Math.cos( 0.2 * time) *  750;
-
-                renderer.render(scene, camera);
-                requestAnimationFrame(render);
-            }
             render();
-            renderer.render(scene, camera);
+//            renderer.render(scene, camera);
         }
     }
 }());

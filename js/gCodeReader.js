@@ -70,7 +70,7 @@ GCODE.gCodeReader = (function(){
         loadFile: function(reader){
             console.log("loadFile");
             var str = reader.target.result;
-            lines = str.split(/[\r\n|\n]+/);
+            lines = str.split(/(\r\n|\n)+/);
             prepareGCode();
         },
         setOption: function(options){
@@ -79,20 +79,25 @@ GCODE.gCodeReader = (function(){
             }
         },
         parseGCode: function(){
+            var argChar, numSlice;
             model=[];
-            var i, j, layer= 0, relative=true, extrude=false, x, y, z, prevz=-999, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined};
-            for(i=0;i<gcode.length;i++){
+//            console.time("parseGCode timer");
+            var reg = new RegExp(/^(?:G0|G1)\s/i);
+            var j, layer= 0, extrude=false, x, y, z, prevz=-999, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined};
+
+            for(var i=0;i<gcode.length;i++){
+//            for(var len = gcode.length- 1, i=0;i!=len;i++){
                 x=undefined;
                 y=undefined;
                 z=undefined;
                 extrude=false;
-//                if(result = this.gcode[i].match(/^(?:G0|G1)\s?([X][\-0-9\.]+)?\s?(Y[\-0-9\.]+)?\s?(Z[\-0-9\.]+)?\s?([EABC][\-0-9\.]+)?/i))console.log(result);
-                if(gcode[i].match(/^(?:G0|G1)\s+/i)){
-                    var args = gcode[i].split(/\s+/);
+//                if(gcode[i].match(/^(?:G0|G1)\s+/i)){
+                if(reg.test(gcode[i])){
+                    var args = gcode[i].split(/\s/);
                     for(j=0;j<args.length;j++){
 //                        console.log(args);
-                        if(!args[j])continue;
-                        switch(args[j].charAt(0).toLowerCase()){
+//                        if(!args[j])continue;
+                        switch(argChar = args[j].charAt(0).toLowerCase()){
                             case 'x':
                                 x=args[j].slice(1);
                                 break;
@@ -115,26 +120,31 @@ GCODE.gCodeReader = (function(){
                                 prevz = z;
                                 break;
                             case 'e'||'a'||'b'||'c':
-                                extrude = parseFloat(prev_extrude[args[j].charAt(0).toLowerCase()]) < parseFloat(args[j].slice(1));
-                                prev_extrude[args[j].charAt(0).toLowerCase()] = args[j].slice(1);
+                                numSlice = args[j].slice(1);
+                                extrude = parseFloat(prev_extrude[argChar]) < parseFloat(numSlice);
+                                prev_extrude[argChar] = numSlice;
                                 break;
                             default:
                                 break;
                         }
                     }
                     if(!model[layer])model[layer]=[];
-                    if(x||y||z)model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, relative: relative};
-                }else if(gcode[i].match(/^(?:G91)\s?/i)){
-                    relative=true;
-                }else if(gcode[i].match(/^(?:G90)\s?/i)){
-                    relative=false;
+                    if(x||y||z) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude};
                 }
+//                }else if(gcode[i].match(/^(?:G91)\s?/i)){
+//                    relative=true;
+//                }else if(gcode[i].match(/^(?:G90)\s?/i)){
+//                    relative=false;
+//                }
             }
+//            console.timeEnd("parseGCode timer");
+            console.log(gcode.length);
             console.log("GCode parsed");
             if(gCodeOptions["sortLayers"])sortLayers();
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);
-            GCODE.renderer3d.doRender(model);
+            GCODE.renderer3d.setModel(model);
+//            GCODE.renderer3d.doRender(model);
         }
 
     }

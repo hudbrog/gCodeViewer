@@ -169,6 +169,15 @@ GCODE.renderer = (function(){
 
     };
 
+    var getZ = function(layerNum){
+        var cmds = model[layerNum];
+        if(!cmds)return "error";
+        for(var i=0;i<cmds.length;i++){
+            if(cmds[i].z)return cmds[i].z;
+        }
+        return -1;
+    };
+
     var drawLayer = function(layerNum, progress){
         var i;
         layerNumStore=layerNum;
@@ -230,9 +239,17 @@ GCODE.renderer = (function(){
             sliderHor = $( "#slider-horizontal" );
             prevx=0;
             prevy=0;
+            var handle;
 
 
             if(!initialized)this.init();
+
+//TODO: need to remove UI stuff from here
+
+            var $slideMe = $('<span/>')
+                .css({ 'position' : 'absolute' , left : 40, 'bottom': 0, 'color':'#0070A3' , 'display' : 'block', 'width':80})
+                .text("Layer:"+layerNum)
+                .hide();
 
             sliderVer.slider({
                 orientation: "vertical",
@@ -241,11 +258,21 @@ GCODE.renderer = (function(){
                 max: model.length,
                 value: layerNum,
                 slide: function( event, ui ) {
-                    drawLayer(ui.value, model[ui.value].length);
-                    sliderHor.slider({max: model[ui.value].length, value: model[ui.value].length});
+                    var progress = model[ui.value]?model[ui.value].length:0;
+                    drawLayer(ui.value, progress);
+                    sliderHor.slider({max: progress, value: progress});
+//                    handle.attr("title", 'Layer:' + ui.value + "\nZ:" + getZ(ui.value));
+                    $slideMe.text('Layer:' + ui.value + '\nZ:' + getZ(ui.value));
 //                    $( "#amount" ).val( ui.value );
                 }
             });
+            handle = $('.ui-slider-handle', sliderVer);
+            handle.append($slideMe).hover(function()
+                { $slideMe.show()},
+                function()
+                { $slideMe.hide()}
+            );
+
             sliderHor.slider({
                 orientation: "horizontal",
                 range: "min",

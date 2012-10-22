@@ -8,6 +8,8 @@ var GCODE = {};
 GCODE.miscObject = (function(){
     var reader;
 
+    var tabSelector = ["2d","3d"];
+
     return {
         handleFileSelect: function(evt) {
             console.log("handleFileSelect");
@@ -75,6 +77,26 @@ GCODE.miscObject = (function(){
                         GCODE.renderer3d.init();
                         event.preventDefault();
                     });
+            });
+
+            $('#tabs-min').bind('tabsselect', function(event, ui) {
+                console.log("got tab select");
+                if(tabSelector[ui.index]&&tabSelector[ui.index]=="3d"&&!GCODE.renderer3d.isModelReady()){
+                    console.log("we are going to 3d mode");
+//                    $(function() {
+//                        $( "#dialog-modal" ).dialog({
+//                            height: 140,
+//                            modal: true
+//                        });
+//                    });
+//                    $(function() {
+//                        $( "#progressbar" ).progressbar({
+//                            value: 0
+//                        });
+//                    });
+                    GCODE.renderer3d.doRender();
+                };
+
             });
 
 
