@@ -233,6 +233,9 @@ GCODE.renderer = (function(){
                 if(options.hasOwnProperty(opt))renderOptions[opt] = options[opt];
             }
         },
+        debugGetModel: function(){
+            return model;
+        },
         doRender: function(mdl, layerNum){
             model = mdl;
             sliderVer =  $( "#slider-vertical" );
