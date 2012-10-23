@@ -13,7 +13,7 @@ GCODE.renderer = (function(){
     var zoomFactor= 3, zoomFactorDelta = 0.4;
     var gridSizeX=200,gridSizeY=200,gridStep=10;
     var ctxHeight, ctxWidth;
-    var prevx=0, prevy=0;
+    var prevX=0, prevY=0;
 
 //    var colorGrid="#bbbbbb", colorLine="#000000";
     var sliderHor, sliderVer;
@@ -25,9 +25,13 @@ GCODE.renderer = (function(){
     var initialized=false;
     var renderOptions = {
         showMoves: true,
+        showRetracts: true,
         colorGrid: "#bbbbbb",
         colorLine: "#000000",
-        colorMove: "#00ff00"
+        colorMove: "#00ff00",
+        colorRetract: "#ff0000",
+        colorRestart: "#0000ff",
+        sizeRetractSpot: 2
     };
     var $slideMe;
 
@@ -173,7 +177,7 @@ GCODE.renderer = (function(){
         var cmds = model[layerNum];
         if(!cmds)return "error";
         for(var i=0;i<cmds.length;i++){
-            if(cmds[i].z)return cmds[i].z;
+            if(cmds[i].z!==undefined)return cmds[i].z;
         }
         return -1;
     };
@@ -183,6 +187,31 @@ GCODE.renderer = (function(){
         layerNumStore=layerNum;
         progressStore = progress;
         var cmds = model[layerNum];
+        var x, y;
+
+        if(layerNum==0){
+            if(model[0]&&model[0].x !== undefined &&model[0].y !== undefined){
+                prevX = model[0].x;
+                prevY = model[0].y;
+            }else {
+                prevX = 0;
+                prevY = 0;
+            }
+        }else{
+            if(model[layerNum-1]){
+                prevX=undefined;
+                prevY=undefined;
+                for(i=model[layerNum-1].length-1;i>=0;i--){
+                    if(prevX === undefined && model[layerNum-1][i].x!==undefined)prevX=model[layerNum-1][i].x*zoomFactor;
+                    if(prevY === undefined && model[layerNum-1][i].y!==undefined)prevY=model[layerNum-1][i].y*zoomFactor;
+                }
+                if(prevX === undefined)prevX=0;
+                if(prevY === undefined)prevY=0;
+            }else{
+                prevX=0;
+                prevY=0;
+            }
+        }
 
         var p1 = ctx.transformedPoint(0,0);
         var p2 = ctx.transformedPoint(canvas.width,canvas.height);
@@ -194,28 +223,56 @@ GCODE.renderer = (function(){
         ctx.beginPath();
         for(i=0;i<progress;i++){
 //                console.log(cmds[i]);
-            if(!cmds[i].x)cmds[i].x=prevx/zoomFactor;
-            if(!cmds[i].y)cmds[i].y=prevy/zoomFactor;
-            if(!cmds[i].extrude){
+            if(!cmds[i].x)x=prevX/zoomFactor;
+            else x = cmds[i].x;
+            if(!cmds[i].y)y=prevY/zoomFactor;
+            else y = cmds[i].y;
+
+
+            if(!cmds[i].extrude&&!cmds[i].noMove){
                 ctx.stroke();
+                if(cmds[i].retract == -1){
+                    if(renderOptions["showRetracts"]){
+                        ctx.strokeStyle = renderOptions["colorRetract"];
+                        ctx.fillStyle = renderOptions["colorRetract"];
+                        ctx.beginPath();
+                        ctx.arc(prevX, prevY, renderOptions["sizeRetractSpot"], 0, Math.PI*2, true);
+                        ctx.stroke();
+                        ctx.fill();
+                    }
+                }
                 if(renderOptions["showMoves"]){
                     ctx.strokeStyle = renderOptions["colorMove"];
                     ctx.beginPath();
-                    ctx.moveTo(prevx, prevy);
-                    ctx.lineTo(cmds[i].x*zoomFactor,cmds[i].y*zoomFactor);
+                    ctx.moveTo(prevX, prevY);
+                    ctx.lineTo(x*zoomFactor,y*zoomFactor);
                     ctx.stroke();
                 }
                 ctx.strokeStyle = renderOptions["colorLine"];
                 ctx.beginPath();
 //                console.log("moveto: "+cmds[i].x+":"+cmds[i].y)
-                ctx.moveTo(cmds[i].x*zoomFactor,cmds[i].y*zoomFactor);
+//                ctx.moveTo(cmds[i].x*zoomFactor,cmds[i].y*zoomFactor);
             }
-            else {
-//                console.log("lineto: "+cmds[i].x+":"+cmds[i].y)
-                ctx.lineTo(cmds[i].x*zoomFactor,cmds[i].y*zoomFactor);
+            else if(cmds[i].extrude){
+                if(cmds[i].retract==0){
+                    ctx.moveTo(prevX, prevY);
+                    ctx.lineTo(x*zoomFactor,y*zoomFactor);
+                }else {
+                    if(renderOptions["showRetracts"]){
+                        ctx.stroke();
+                        ctx.strokeStyle = renderOptions["colorRestart"];
+                        ctx.fillStyle = renderOptions["colorRestart"];
+                        ctx.beginPath();
+                        ctx.arc(prevX, prevY, renderOptions["sizeRetractSpot"], 0, Math.PI*2, true);
+                        ctx.stroke();
+                        ctx.fill();
+                        ctx.strokeStyle = renderOptions["colorLine"];
+                        ctx.beginPath();
+                    }
+                }
             }
-            prevx = cmds[i].x*zoomFactor;
-            prevy = cmds[i].y*zoomFactor;
+            prevX = x*zoomFactor;
+            prevY = y*zoomFactor;
         }
         ctx.stroke();
     };
@@ -240,8 +297,8 @@ GCODE.renderer = (function(){
             model = mdl;
             sliderVer =  $( "#slider-vertical" );
             sliderHor = $( "#slider-horizontal" );
-            prevx=0;
-            prevy=0;
+            prevX=0;
+            prevY=0;
             var handle;
 
 
@@ -249,16 +306,12 @@ GCODE.renderer = (function(){
 
 //TODO: need to remove UI stuff from here
 
-            $slideMe = $('<span/>')
-                .css({ 'position' : 'absolute' , left : 40, 'bottom': 0, 'color':'#0070A3' , 'display' : 'block', 'width':80})
-                .text("Layer:"+layerNum)
-                .hide();
 
             sliderVer.slider({
                 orientation: "vertical",
                 range: "min",
                 min: 0,
-                max: model.length,
+                max: model.length-1,
                 value: layerNum,
                 slide: function( event, ui ) {
                     var progress = model[ui.value]?model[ui.value].length:0;
@@ -269,6 +322,11 @@ GCODE.renderer = (function(){
 //                    $( "#amount" ).val( ui.value );
                 }
             });
+            $slideMe = $('<span/>')
+                .css({ 'position' : 'absolute' , left : 40, 'bottom': 0, 'color':'#0070A3' , 'display' : 'block', 'width':80})
+                .text('Layer:' + layerNum + '\nZ:' + getZ(layerNum))
+                .hide();
+
             handle = $('.ui-slider-handle', sliderVer);
             handle.append($slideMe).hover(function()
                 { $slideMe.show()},

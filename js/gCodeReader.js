@@ -19,7 +19,7 @@ GCODE.gCodeReader = (function(){
         gcode = [];
         var i;
         for(i=0;i<lines.length;i++){
-            if(lines[i].match(/^(G0|G1|G90|G91|G92|M82|M83)/))gcode.push(lines[i]);
+            if(lines[i].match(/^(G0|G1|G90|G91|G92|M82|M83|G28)/i))gcode.push(lines[i]);
         }
         lines = [];
         console.log("GCode prepared");
@@ -90,9 +90,10 @@ GCODE.gCodeReader = (function(){
                 x=undefined;
                 y=undefined;
                 z=undefined;
+
                 extrude=false;
-                prevRetract=0;
-                retract=0;
+//                prevRetract=0;
+//                retract=0;
 //                if(gcode[i].match(/^(?:G0|G1)\s+/i)){
                 if(reg.test(gcode[i])){
                     var args = gcode[i].split(/\s/);
@@ -108,8 +109,6 @@ GCODE.gCodeReader = (function(){
                                 break;
                             case 'z':
                                 z=args[j].slice(1);
-                                // TODO: нужно реализовать механизм переключения на нужный слой, а не просто вверх-вниз
-                                // TODO: и учитывать абсолютные/относительные перемещения
                                 if(z_heights.hasOwnProperty(z)){
                                     layer = z_heights[z];
                                 }else{
@@ -130,22 +129,22 @@ GCODE.gCodeReader = (function(){
                                 }else{
                                     prev_extrude["abs"] = parseFloat(numSlice);
                                 }
-                                    extrude = prev_extrude["abs"]>0;
-                                    if(prev_extrude["abs"]<0){
-                                        prevRetract = -1;
-                                        retract = -1;
-                                    }
-                                    else if(prev_extrude["abs"]==0){
+                                extrude = prev_extrude["abs"]>0;
+                                if(prev_extrude["abs"]<0){
+                                    prevRetract = -1;
+                                    retract = -1;
+                                }
+                                else if(prev_extrude["abs"]==0){
 //                                        if(prevRetract <0 )prevRetract=retract;
-                                        retract = 0;
-                                    }else if(prev_extrude["abs"]>0&&prevRetract < 0){
-                                        prevRetract = 0;
-                                        retract = 1;
-                                    } else {
+                                    retract = 0;
+                                }else if(prev_extrude["abs"]>0&&prevRetract < 0){
+                                    prevRetract = 0;
+                                    retract = 1;
+                                } else {
 //                                        prevRetract = retract;
-                                        retract = 0;
-                                    }
-                                    prev_extrude[argChar] = numSlice;
+                                    retract = 0;
+                                }
+                                prev_extrude[argChar] = numSlice;
 
                                 break;
                             default:
@@ -153,15 +152,47 @@ GCODE.gCodeReader = (function(){
                         }
                     }
                     if(!model[layer])model[layer]=[];
-                    if(x||y||z) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract};
+                    if(x !== undefined || y !== undefined ||z !== undefined||retract!=0) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract};
                 } else if(gcode[i].match(/^(?:M82)/i)){
                     extrudeRelative = false;
-                }else if(gcode[i].match(/^(?:G91)\s?/i)){
+                }else if(gcode[i].match(/^(?:G91)/i)){
                     extrudeRelative=true;
-                }else if(gcode[i].match(/^(?:G90)\s?/i)){
+                }else if(gcode[i].match(/^(?:G90)/i)){
                     extrudeRelative=false;
-                }else if(gcode[i].match(/^(?:M83)\s?/i)){
+                }else if(gcode[i].match(/^(?:M83)/i)){
                     extrudeRelative=true;
+                }else if(gcode[i].match(/^(?:G92)/i)){
+                    var args = gcode[i].split(/\s/);
+                    for(j=0;j<args.length;j++){
+                        switch(argChar = args[j].charAt(0).toLowerCase()){
+                            case 'x':
+                                x=args[j].slice(1);
+                                break;
+                            case 'y':
+                                y=args[j].slice(1);
+                                break;
+                            case 'z':
+                                z=args[j].slice(1);
+                                prevZ = z;
+                                break;
+                            case 'e'||'a'||'b'||'c':
+                                numSlice = args[j].slice(1);
+                                if(!extrudeRelative)
+                                    prev_extrude[argChar] = 0;
+                                else {
+                                    prev_extrude[argChar] = numSlice;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    if(!model[layer])model[layer]=[];
+                    if(x !== undefined || y !== undefined ||z !== undefined) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: true};
+                }else if(gcode[i].match(/^(?:G28)/i)){
+                    x=0, y=0,z=0,prevZ=0, extrude=false;
+                    if(!model[layer])model[layer]=[];
+                    if(x !== undefined || y !== undefined ||z !== undefined) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract};
                 }
             }
 //            console.timeEnd("parseGCode timer");

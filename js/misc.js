@@ -108,6 +108,8 @@ GCODE.miscObject = (function(){
             else GCODE.gCodeReader.setOption({purgeEmptyLayers: false});
             if(document.getElementById('showMovesCheckbox').checked)GCODE.renderer.setOption({showMoves: true});
             else GCODE.renderer.setOption({showMoves: false});
+            if(document.getElementById('showRetractsCheckbox').checked)GCODE.renderer.setOption({showRetracts: true});
+            else GCODE.renderer.setOption({showRetracts: false});
         }
     }
 }());
