@@ -18,7 +18,7 @@ GCODE.renderer3d = (function(){
         NEAR = 0.1,
         FAR = 10000;
 
-    var renderer = new THREE.WebGLRenderer({clearColor:0xffffff, clearAlpha: 1});
+    var renderer;
     var scene;
     var camera = new THREE.PerspectiveCamera(VIEW_ANGLE, ASPECT, NEAR, FAR);
     var controls;
@@ -29,7 +29,8 @@ GCODE.renderer3d = (function(){
     var renderOptions = {
         showMoves: true,
         colorLine: 0x000000,
-        colorMove: 0x00ff00
+        colorMove: 0x00ff00,
+        rendererType: "webgl"
     };
 
     var render = function(){
@@ -136,6 +137,9 @@ GCODE.renderer3d = (function(){
     return {
         init: function(){
             modelLoaded = false;
+            if(renderOptions["rendererType"]=="webgl")renderer = new THREE.WebGLRenderer({clearColor:0xffffff, clearAlpha: 1});
+            else if(renderOptions["rendererType"]=="canvas")renderer = new THREE.CanvasRenderer({clearColor:0xffffff, clearAlpha: 1});
+            else { console.log("unknown rendererType"); return;}
 
             scene = new THREE.Scene()
             var $container = $('#3d_container');
@@ -160,6 +164,11 @@ GCODE.renderer3d = (function(){
         },
         isModelReady: function(){
             return modelLoaded;
+        },
+        setOption: function(options){
+            for(var opt in options){
+                if(options.hasOwnProperty(opt))renderOptions[opt] = options[opt];
+            }
         },
         setModel: function(mdl){
             model = mdl;

@@ -57,6 +57,35 @@ GCODE.miscObject = (function(){
         },
 
         initHandlers: function(){
+            var warnings = [];
+            var fatal = [];
+
+            Modernizr.addTest('filereader', function () {
+                return !!(window.File && window.FileList && window.FileReader);
+            });
+
+            if(!Modernizr.canvas)fatal.push("<li>Your browser doesn't seem to support HTML5 Canvas, this application won't work without it.</li>");
+            if(!Modernizr.filereader)fatal.push("<li>Your browser doesn't seem to support HTML5 File API, this application won't work without it.</li>");
+            if(!Modernizr.webworkers)fatal.push("<li>Your browser doesn't seem to support HTML5 Web Workers, this application won't work without it.</li>");
+            if(!Modernizr.svg)fatal.push("<li>Your browser doesn't seem to support HTML5 SVG, this application won't work without it.</li>");
+
+            if(fatal.length>0){
+                document.getElementById('list').innerHTML = '<ul>' + fatal.join('') + '</ul>';
+                console.log("Initialization failed: unsupported browser.")
+                return;
+            }
+
+            if(!Modernizr.webgl){
+                warnings.push("<li>Your browser doesn't seem to support HTML5 Web GL, 3d mode is not recommended, going to be SLOW!</li>");
+                GCODE.renderer3d.setOption({rendererType: "canvas"});
+            }
+            if(!Modernizr.draganddrop)warnings.push("<li>Your browser doesn't seem to support HTML5 Drag'n'Drop, Drop area will not work.</li>");
+            if(warnings.length>0){
+                document.getElementById('list').innerHTML = '<ul>' + wanings.join('') + '</ul>';
+                console.log("Initialization succeeded with warnings.")
+                return;
+            }
+
             console.log("Application initialized");
             var dropZone = document.getElementById('drop_zone');
             dropZone.addEventListener('dragover', GCODE.miscObject.handleDragOver, false);
