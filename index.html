@@ -51,13 +51,16 @@
         </div>
         <div id="control_bottom">
             <div id="options">
-                <input type="checkbox" id="sortLayersCheckbox" value="1" onclick="GCODE.miscObject.processOptions()">Sort layers by Z</input><br>
-                <input type="checkbox" id="purgeEmptyLayersCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
-                <input type="checkbox" id="showMovesCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
-                <input type="checkbox" id="showRetractsCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" checked>Show retracts and restarts</input><br>
+                <input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
+                <input type="checkbox" id="showRetractsCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Show retracts and restarts</input><br>
+                <input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" disabled>Move model to the center of the grid</input><br>
+                These require re-analyzing file:<br>
+                <input type="checkbox" id="sortLayersCheckbox" value="4" onclick="GCODE.miscObject.processOptions()">Sort layers by Z</input><br>
+                <input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
+                <input type="checkbox" id="analyzeModelCheckbox" value="6" onclick="GCODE.miscObject.processOptions()">Analyze size and filament usage</input><br>
             </div>
             <div id="main_button_block">
-                <input id="submit_button" class="mbut" type="submit" value="Render GCode" disabled=true />
+                <input id="submit_button" class="mbut" type="submit" value="Analyze GCode" disabled=true />
             </div>
         </div>
 

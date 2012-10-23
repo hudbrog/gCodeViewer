@@ -9,9 +9,15 @@ GCODE.gCodeReader = (function(){
     var gcode, lines;
     var z_heights = {};
     var model = [];
+    var max = {x: undefined, y: undefined, z: undefined};
+    var min = {x: undefined, y: undefined, z: undefined};
+    var modelSize = {x: undefined, y: undefined, z: undefined};
+    var filamentByLayer = {};
+    var totalFilament=0;
     var gCodeOptions = {
         sortLayers: false,
-        purgeEmptyLayers: true
+        purgeEmptyLayers: true,
+        analyzeModel: false
     };
 
     var prepareGCode = function(){
@@ -64,6 +70,46 @@ GCODE.gCodeReader = (function(){
         }
     };
 
+    var analyzeSize = function(){
+        var i,j;
+
+        var cmds;
+
+        for(i=0;i<model.length;i++){
+            cmds = model[i];
+            if(!cmds)continue;
+            for(j=0;j<cmds.length;j++){
+                if(cmds[j].x&&cmds[j].prevX&&cmds[j].extrude)max.x = parseFloat(max.x)>parseFloat(cmds[j].x)?parseFloat(max.x):parseFloat(cmds[j].x);
+                if(cmds[j].x&&cmds[j].prevX&&cmds[j].extrude)max.x = parseFloat(max.x)>parseFloat(cmds[j].prevX)?parseFloat(max.x):parseFloat(cmds[j].prevX);
+                if(cmds[j].y&&cmds[j].prevY&&cmds[j].extrude)max.y = parseFloat(max.y)>parseFloat(cmds[j].y)?parseFloat(max.y):parseFloat(cmds[j].y);
+                if(cmds[j].y&&cmds[j].prevY&&cmds[j].extrude)max.y = parseFloat(max.y)>parseFloat(cmds[j].prevY)?parseFloat(max.y):parseFloat(cmds[j].prevY);
+                if(cmds[j].prevZ&&cmds[j].extrude)max.z = parseFloat(max.z)>parseFloat(cmds[j].prevZ)?parseFloat(max.z):parseFloat(cmds[j].prevZ);
+
+                if(cmds[j].x&&cmds[j].prevX&&cmds[j].extrude)min.x = parseFloat(min.x)<parseFloat(cmds[j].x)?parseFloat(min.x):parseFloat(cmds[j].x);
+                if(cmds[j].x&&cmds[j].prevX&&cmds[j].extrude)min.x = parseFloat(min.x)<parseFloat(cmds[j].prevX)?parseFloat(min.x):parseFloat(cmds[j].prevX);
+                if(cmds[j].y&&cmds[j].prevY&&cmds[j].extrude)min.y = parseFloat(min.y)<parseFloat(cmds[j].y)?parseFloat(min.y):parseFloat(cmds[j].y);
+                if(cmds[j].y&&cmds[j].prevY&&cmds[j].extrude)min.y = parseFloat(min.y)<parseFloat(cmds[j].prevY)?parseFloat(min.y):parseFloat(cmds[j].prevY);
+                if(cmds[j].prevZ&&cmds[j].extrude)min.z = parseFloat(min.z)<parseFloat(cmds[j].prevZ)?parseFloat(min.z):parseFloat(cmds[j].prevZ);
+
+                if(cmds[j].extrude||cmds[j].retract!=0){
+                    totalFilament+=cmds[j].extrusion;
+                    if(!filamentByLayer[cmds[j].prevZ])filamentByLayer[cmds[j].prevZ]=0;
+                    filamentByLayer[cmds[j].prevZ]+=cmds[j].extrusion;
+                }
+
+            }
+        }
+        modelSize.x = max.x - min.x;
+        modelSize.y = max.y - min.y;
+        modelSize.z = max.z - min.z;
+
+/*        console.log(max);
+        console.log(min);
+        console.log("Total filament used: " + totalFilament);
+        console.log(filamentByLayer);*/
+
+    };
+
 // ***** PUBLIC *******
     return {
 
@@ -83,7 +129,7 @@ GCODE.gCodeReader = (function(){
             model=[];
 //            console.time("parseGCode timer");
             var reg = new RegExp(/^(?:G0|G1)\s/i);
-            var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z, prevZ=-999, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;;
+            var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z, prevZ, prevX, prevY, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;;
 
             for(var i=0;i<gcode.length;i++){
 //            for(var len = gcode.length- 1, i=0;i!=len;i++){
@@ -152,7 +198,9 @@ GCODE.gCodeReader = (function(){
                         }
                     }
                     if(!model[layer])model[layer]=[];
-                    if(x !== undefined || y !== undefined ||z !== undefined||retract!=0) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract};
+                    if(x !== undefined || y !== undefined ||z !== undefined||retract!=0) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ};
+                    if(x !== undefined) prevX = x;
+                    if(y !== undefined) prevY = y;
                 } else if(gcode[i].match(/^(?:M82)/i)){
                     extrudeRelative = false;
                 }else if(gcode[i].match(/^(?:G91)/i)){
@@ -188,21 +236,31 @@ GCODE.gCodeReader = (function(){
                         }
                     }
                     if(!model[layer])model[layer]=[];
-                    if(x !== undefined || y !== undefined ||z !== undefined) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: true};
+                    if(x !== undefined || y !== undefined ||z !== undefined) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: true, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ};
                 }else if(gcode[i].match(/^(?:G28)/i)){
                     x=0, y=0,z=0,prevZ=0, extrude=false;
                     if(!model[layer])model[layer]=[];
-                    if(x !== undefined || y !== undefined ||z !== undefined) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract};
+                    if(x !== undefined || y !== undefined ||z !== undefined) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ};
                 }
             }
 //            console.timeEnd("parseGCode timer");
             console.log(gcode.length);
             console.log("GCode parsed");
+            if(gCodeOptions["analyzeModel"]){
+                analyzeSize();
+                console.log({"modelCenter":{x: (modelSize.x/2 + min.x), y: (modelSize.y/2 + min.y)}});
+                GCODE.renderer.setOption({"modelCenter":{x: (modelSize.x/2 + min.x), y: (modelSize.y/2 + min.y)}})
+            };
             if(gCodeOptions["sortLayers"])sortLayers();
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);
             GCODE.renderer3d.setModel(model);
 //            GCODE.renderer3d.doRender(model);
+            if(gCodeOptions["analyzeModel"]){
+                return {modelSize: modelSize, totalFilament: totalFilament};
+            }else{
+                return undefined;
+            }
         }
 
     }

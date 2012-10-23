@@ -25,7 +25,7 @@ GCODE.miscObject = (function(){
                     f.size, ' bytes, last modified: ',
                     f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
                     '</li>');
-                if(f.name.toLowerCase().match(/^.*\.gcode/)){
+                if(f.name.toLowerCase().match(/^.*\.(?:gcode|g|txt)$/)){
                     output.push('<li>File extensions suggests GCODE</li>');
                     output.push('<li>You should press "Render GCode" button now.</li>');
 
@@ -99,7 +99,13 @@ GCODE.miscObject = (function(){
                     .click(function( event ) {
                         _gaq.push(['_trackEvent', 'renderButton', 'clicked']);
                         $("#tabs-min").tabs("select", "#tabs-1");
-                        GCODE.gCodeReader.parseGCode();
+                        var result = GCODE.gCodeReader.parseGCode();
+                        if(result){
+                            var resultSet = [];
+                            resultSet.push("<li>Model size is: " + result.modelSize.x.toFixed(2) + 'x' + result.modelSize.y.toFixed(2) + 'x' + result.modelSize.z.toFixed(2)+'mm</li><br>');
+                            resultSet.push("<li>Total filament used: " + result.totalFilament.toFixed(2) + "mm</li><br>");
+                            document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
+                        }
                         event.preventDefault();
                     });
             });
@@ -133,10 +139,19 @@ GCODE.miscObject = (function(){
         processOptions: function(){
             if(document.getElementById('sortLayersCheckbox').checked)GCODE.gCodeReader.setOption({sortLayers: true});
             else GCODE.gCodeReader.setOption({sortLayers: false});
+
             if(document.getElementById('purgeEmptyLayersCheckbox').checked)GCODE.gCodeReader.setOption({purgeEmptyLayers: true});
             else GCODE.gCodeReader.setOption({purgeEmptyLayers: false});
+
+            if(document.getElementById('analyzeModelCheckbox').checked)GCODE.gCodeReader.setOption({analyzeModel: true});
+            else GCODE.gCodeReader.setOption({analyzeModel: false});
+
+            if(document.getElementById('moveModelCheckbox').checked)GCODE.renderer.setOption({moveModel: true});
+            else GCODE.renderer.setOption({moveModel: false});
+
             if(document.getElementById('showMovesCheckbox').checked)GCODE.renderer.setOption({showMoves: true});
             else GCODE.renderer.setOption({showMoves: false});
+
             if(document.getElementById('showRetractsCheckbox').checked)GCODE.renderer.setOption({showRetracts: true});
             else GCODE.renderer.setOption({showRetracts: false});
         }

@@ -31,9 +31,12 @@ GCODE.renderer = (function(){
         colorMove: "#00ff00",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
-        sizeRetractSpot: 2
+        sizeRetractSpot: 2,
+        modelCenter: {x: 0, y: 0},
+        moveModel: false
     };
     var $slideMe;
+    var offsetX=0, offsetY=0;
 
 
     var reRender = function(){
@@ -157,17 +160,18 @@ GCODE.renderer = (function(){
     var drawGrid = function() {
         var i;
         ctx.strokeStyle = renderOptions["colorGrid"];
+
         ctx.beginPath();
         for(i=0;i<=gridSizeX;i+=gridStep){
-            ctx.moveTo(i*zoomFactor, 0);
-            ctx.lineTo(i*zoomFactor, gridSizeY*zoomFactor);
+            ctx.moveTo(i*zoomFactor+offsetX, 0+offsetY);
+            ctx.lineTo(i*zoomFactor+offsetX, gridSizeY*zoomFactor+offsetY);
         }
         ctx.stroke();
 
         ctx.beginPath();
         for(i=0;i<=gridSizeY;i+=gridStep){
-            ctx.moveTo(0, i*zoomFactor);
-            ctx.lineTo(gridSizeX*zoomFactor, i*zoomFactor);
+            ctx.moveTo(0+offsetX, i*zoomFactor+offsetY);
+            ctx.lineTo(gridSizeX*zoomFactor+offsetX, i*zoomFactor+offsetY);
         }
         ctx.stroke();
 
@@ -191,8 +195,8 @@ GCODE.renderer = (function(){
 
         if(layerNum==0){
             if(model[0]&&model[0].x !== undefined &&model[0].y !== undefined){
-                prevX = model[0].x;
-                prevY = model[0].y;
+                prevX = model[0].x*zoomFactor;
+                prevY = model[0].y*zoomFactor;
             }else {
                 prevX = 0;
                 prevY = 0;
@@ -283,12 +287,23 @@ GCODE.renderer = (function(){
         init: function(){
             startCanvas();
             initialized = true;
-            ctx.translate(30,30);
+            ctx.translate(30-offsetX,30-offsetY);
         },
         setOption: function(options){
             for(var opt in options){
                 if(options.hasOwnProperty(opt))renderOptions[opt] = options[opt];
+            };
+
+            if(renderOptions["moveModel"]){
+                offsetX = renderOptions["modelCenter"].x*zoomFactor-gridSizeX/2*zoomFactor;
+                offsetY = renderOptions["modelCenter"].y*zoomFactor-gridSizeY/2*zoomFactor;
+                if(ctx)ctx.translate(offsetX, offsetY);
+            }else{
+                offsetX=0;
+                offsetY=0;
             }
+
+            if(initialized)reRender();
         },
         debugGetModel: function(){
             return model;
