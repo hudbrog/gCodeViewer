@@ -65,12 +65,7 @@ GCODE.renderer3d = (function(){
         for(i=0;i<model.length;i+=3){
             buildModelIteration(i);
             //TODO: need to remove UI stuff from here
-            $(function() {
-                $( "#progressbar" ).progressbar({
-                    value: i/model.length*100
-                });
-            });
-            setTimeout(50);
+
         }
         var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 1, opacity: 0.4});
         geometry.computeBoundingBox();

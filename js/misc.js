@@ -21,14 +21,18 @@ GCODE.miscObject = (function(){
             // files is a FileList of File objects. List some properties.
             var output = [];
             for (var i = 0, f; f = files[i]; i++) {
-                output.push('<li><strong>', escape(f.name), '</strong> - ',
+                output.push('<li>', escape(f.name), ' - ',
                     f.size, ' bytes, last modified: ',
                     f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
                     '</li>');
                 if(f.name.toLowerCase().match(/^.*\.gcode/)){
                     output.push('<li>File extensions suggests GCODE</li>');
+                    output.push('<li>You should press "Render GCode" button now.</li>');
+
                 }else{
+                    output.push('<li><strong>You should only upload *.gcode files! I will not work with this one!</strong></li>');
                     $( "submit_button" ).button("disable");
+                    document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
                     return;
                 }
 
