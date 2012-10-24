@@ -146,6 +146,7 @@ GCODE.renderer3d = (function(){
             camera.position.z = 200;
             scene.add(camera);
             renderer.setSize(WIDTH, HEIGHT);
+            $container.empty();
             $container.append(renderer.domElement);
 
             controls = new THREE.TrackballControls(camera);

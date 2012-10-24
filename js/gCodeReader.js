@@ -133,6 +133,9 @@ GCODE.gCodeReader = (function(){
             modelSize = msg.modelSize;
             totalFilament = msg.totalFilament;
             filamentByLayer = msg.filamentByLayer;
+        },
+        getLayerFilament: function(z){
+            return filamentByLayer[z];
         }
     }
 }());

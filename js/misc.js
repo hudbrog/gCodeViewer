@@ -32,7 +32,7 @@ GCODE.miscObject = (function(){
 
                 }else{
                     output.push('<li><strong>You should only upload *.gcode files! I will not work with this one!</strong></li>');
-                    $( "submit_button" ).button("disable");
+//                    $( "submit_button" ).button("disable");
                     document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
                     return;
                 }
@@ -40,6 +40,7 @@ GCODE.miscObject = (function(){
                 reader = new FileReader();
                 reader.onload = function(theFile){
                     $("#progressName").html("Loading model:");
+                    $("#list").html("");
                     $("#loadProgressbar").show();
                     $("#loadProgressbar").progressbar({value:0});
                     GCODE.gCodeReader.loadFile(theFile);
@@ -97,34 +98,34 @@ GCODE.miscObject = (function(){
 
             document.getElementById('file').addEventListener('change', GCODE.miscObject.handleFileSelect, false);
 
-            $(function() {
-                $( "#submit_button" )
-                    .button()
-                    .click(function( event ) {
-                        _gaq.push(['_trackEvent', 'renderButton', 'clicked']);
-                        $("#tabs-min").tabs("select", "#tabs-1");
-                        var result = GCODE.gCodeReader.parseGCode();
-                        if(result){
-                            var resultSet = [];
-                            resultSet.push("<li>Model size is: " + result.modelSize.x.toFixed(2) + 'x' + result.modelSize.y.toFixed(2) + 'x' + result.modelSize.z.toFixed(2)+'mm</li><br>');
-                            resultSet.push("<li>Total filament used: " + result.totalFilament.toFixed(2) + "mm</li><br>");
-                            document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
-                        }
-                        event.preventDefault();
-                    });
-            });
+//            $(function() {
+//                $( "#submit_button" )
+//                    .button()
+//                    .click(function( event ) {
+//                        _gaq.push(['_trackEvent', 'renderButton', 'clicked']);
+//                        $("#tabs-min").tabs("select", "#tabs-1");
+//                        var result = GCODE.gCodeReader.parseGCode();
+//                        if(result){
+//                            var resultSet = [];
+//                            resultSet.push("<li>Model size is: " + result.modelSize.x.toFixed(2) + 'x' + result.modelSize.y.toFixed(2) + 'x' + result.modelSize.z.toFixed(2)+'mm</li><br>');
+//                            resultSet.push("<li>Total filament used: " + result.totalFilament.toFixed(2) + "mm</li><br>");
+//                            document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
+//                        }
+//                        event.preventDefault();
+//                    });
+//            });
 
 
             $('#tabs-min').bind('tabsselect', function(event, ui) {
                 console.log("got tab select");
                 if(tabSelector[ui.index]&&tabSelector[ui.index]=="3d"&&!GCODE.renderer3d.isModelReady()){
                     console.log("we are going to 3d mode");
-//                    $(function() {
-//                        $( "#dialog-modal" ).dialog({
-//                            height: 140,
-//                            modal: true
-//                        });
-//                    });
+                    $(function() {
+                        $( "#dialog-modal" ).dialog({
+                            height: 140,
+                            modal: true
+                        });
+                    });
 //                    $(function() {
 //                        $( "#progressbar" ).progressbar({
 //                            value: 0
@@ -135,6 +136,10 @@ GCODE.miscObject = (function(){
 
             });
 
+
+            $(function() {
+                $( "#accordion" ).accordion();
+            });
 
 
             worker = new Worker('js/Worker.js');

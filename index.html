@@ -40,8 +40,8 @@
     <div id="progressbar"></div>
 </div>
 
-<div id="wrap">
-    <div id="control">
+<div id="wrap" class="ui-widget ui-widget-content ui-corner-all">
+    <div id="control" class="ui-widget ui-widget-content ui-corner-all">
         <div id="file_block">
             <input type="file" id="file" name="files" />
             <div id="drop_zone">Drop file here</div>
@@ -54,18 +54,26 @@
             </div>
         </div>
         <div id="control_bottom">
-            <div id="options">
-                <input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
-                <input type="checkbox" id="showRetractsCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Show retracts and restarts</input><br>
-                <input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" disabled>Move model to the center of the grid</input><br>
-                These require re-analyzing file:<br>
-                <input type="checkbox" id="sortLayersCheckbox" value="4" onclick="GCODE.miscObject.processOptions()" checked>Sort layers by Z</input><br>
-                <input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
-                <input type="checkbox" id="analyzeModelCheckbox" value="6" onclick="GCODE.miscObject.processOptions()" checked>Analyze size and filament usage</input><br>
+            <div id="accordion">
+                <h3>2D Render options</h3>
+                <div>
+                    <input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
+                    <input type="checkbox" id="showRetractsCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Show retracts and restarts</input><br>
+                    <input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" disabled>Move model to the center of the grid</input><br>
+                </div>
+                <h3>GCode analyzer options</h3>
+                <div>
+                    These require re-analyzing file:<br>
+                    <input type="checkbox" id="sortLayersCheckbox" value="4" onclick="GCODE.miscObject.processOptions()" checked>Sort layers by Z</input><br>
+                    <input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
+                    <input type="checkbox" id="analyzeModelCheckbox" value="6" onclick="GCODE.miscObject.processOptions()" checked>Analyze size and filament usage</input><br>
+                </div>
             </div>
-            <div id="main_button_block">
-                <input id="submit_button" class="mbut" type="submit" value="Analyze GCode" disabled=true />
-            </div>
+            <!--<div id="options">-->
+            <!--</div>-->
+            <!--<div id="main_button_block">-->
+                <!--<input id="submit_button" class="mbut" type="submit" value="Analyze GCode" disabled=true />-->
+            <!--</div>-->
         </div>
 
     </div>
