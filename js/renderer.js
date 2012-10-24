@@ -353,8 +353,8 @@ GCODE.renderer = (function(){
                 orientation: "horizontal",
                 range: "min",
                 min: 0,
-                max: model[layerNum].length,
-                value: model[layerNum].length,
+                max: model[layerNum]?model[layerNum].length:0,
+                value: model[layerNum]?model[layerNum].length:0,
                 slide: function( event, ui ) {
                     drawLayer(sliderVer.slider("value"), ui.value);
 //                    console.log($("#slider-vertical").slider("value"));

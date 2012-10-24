@@ -11,6 +11,7 @@ GCODE.miscObject = (function(){
     var tabSelector = ["2d","3d"];
 
     return {
+        worker: undefined,
         handleFileSelect: function(evt) {
             console.log("handleFileSelect");
             evt.stopPropagation();
@@ -38,15 +39,18 @@ GCODE.miscObject = (function(){
 
                 reader = new FileReader();
                 reader.onload = function(theFile){
+                    $("#progressName").html("Loading model:");
+                    $("#loadProgressbar").show();
+                    $("#loadProgressbar").progressbar({value:0});
                     GCODE.gCodeReader.loadFile(theFile);
                 };
                 reader.readAsText(f);
             }
 
-            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
+//            document.getElementById('list').innerHTML = '<ul>' + output.join('') + '</ul>';
 //            document.getElementById('submit_button').disabled=false;
 
-            $( "#submit_button" ).button("enable");
+//            $( "#submit_button" ).button("enable");
 
         },
 
@@ -132,7 +136,51 @@ GCODE.miscObject = (function(){
             });
 
 
+
+            worker = new Worker('js/Worker.js');
+
+            worker.addEventListener('message', function(e) {
+                var data = e.data;
+                switch (data.cmd) {
+                    case 'returnModel':
+                        $("#progressName").html("");
+                        $("#loadProgressbar").hide();
+                        GCODE.gCodeReader.passDataToRenderer();
+                        break;
+                    case 'analyzeDone':
+                        $("#progressName").html("");
+                        $("#loadProgressbar").hide();
+                        GCODE.gCodeReader.processAnalyzeModelDone(data.msg);
+                        var resultSet = [];
+                        resultSet.push("<li>Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm</li><br>');
+                        resultSet.push("<li>Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm</li><br>");
+                        document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
+
+                        break;
+                    case 'returnLayer':
+                        GCODE.gCodeReader.processLayerFromWorker(data.msg);
+                        $(function() {
+                            $( "#loadProgressbar" ).progressbar({
+                                value: data.msg.progress
+                            });
+                        });
+
+                        break;
+                    case "analyzeProgress":
+                        if(!$("#loadProgressbar").visible){
+                            $("#progressName").html("Analyzing model");
+                            $("#loadProgressbar").show();
+                        }
+                        $("#loadProgressbar").progressbar({value:data.msg.progress});
+                        break;
+                    default:
+                        console.log("default msg received");
+                }
+            }, false);
+
             GCODE.miscObject.processOptions();
+
+            worker.postMessage({"cmd":"lala", "msg":"blah"});
 
         },
 
@@ -145,6 +193,17 @@ GCODE.miscObject = (function(){
 
             if(document.getElementById('analyzeModelCheckbox').checked)GCODE.gCodeReader.setOption({analyzeModel: true});
             else GCODE.gCodeReader.setOption({analyzeModel: false});
+
+
+            if(document.getElementById('sortLayersCheckbox').checked) worker.postMessage({"cmd":"setOption", "msg":{sortLayers: true}});
+            else  worker.postMessage({"cmd":"setOption", "msg":{sortLayers: false}});
+
+            if(document.getElementById('purgeEmptyLayersCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: true}});
+            else worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: false}});
+
+            if(document.getElementById('analyzeModelCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: true}});
+            else worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: false}});
+
 
             if(document.getElementById('moveModelCheckbox').checked)GCODE.renderer.setOption({moveModel: true});
             else GCODE.renderer.setOption({moveModel: false});
