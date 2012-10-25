@@ -22,6 +22,8 @@ GCODE.worker = (function(){
     var filamentByLayer = {};
     var totalFilament=0;
     var printTime=0;
+    var layerHeight=0;
+    var layerCnt = 0;
 
 
     var sendLayerToParent = function(layerNum, z, progress){
@@ -56,9 +58,28 @@ GCODE.worker = (function(){
                 modelSize: modelSize,
                 totalFilament:totalFilament,
                 filamentByLayer: filamentByLayer,
-                printTime: printTime
+                printTime: printTime,
+                layerHeight: layerHeight,
+                layerCnt: layerCnt,
+                layerTotal: model.length
             }
         });
+    };
+
+    var purgeLayers = function(){
+        var purge=true;
+        for(var i=0;i<model.length;i++){
+            purge=true;
+            if(!model[i])purge=true;
+            else {
+                for(var j=0;j<model[i].length;j++){
+                    if(model[i][j].extrude)purge=false;
+                }
+            }
+            if(!purge){
+                layerCnt+=1;
+            }
+        }
     };
 
 
@@ -112,10 +133,12 @@ GCODE.worker = (function(){
             sendSizeProgress(i/model.length*100);
 
         }
+        purgeLayers();
+
         modelSize.x = max.x - min.x;
         modelSize.y = max.y - min.y;
         modelSize.z = max.z - min.z;
-
+        layerHeight = (max.z-min.z)/layerCnt;
 
         sendAnalyzeDone();
     };

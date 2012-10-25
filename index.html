@@ -41,20 +41,32 @@
 </div>
 
 <div id="wrap" class="ui-widget ui-widget-content ui-corner-all">
-    <div id="control" class="ui-widget ui-widget-content ui-corner-all">
-        <div id="file_block">
+    <div id="control">
+        <center><h2>GCode<br>Visual Analyzer</h3></center>
+    <div id="accordion_top" >
+        <h3>Select input file</h3>
+        <div>
             <input type="file" id="file" name="files" />
+            <!--<form class="add-teacher" id="fAddTeacher" enctype="multipart/form-data" method="post" novalidate="novalidate">-->
+            <!--<button id="selectFileButton">Select GCode File</button>-->
+            <!--</form>-->
             <div id="drop_zone">Drop file here</div>
         </div>
-        <div id="output_block">
-            <output id="list"></output>
+        <h3>Progress indicators</h3>
+        <div id="output_block" >
+            <!--<output id="list"></output>-->
             <div id="progressBlock">
                 <p id="progressName"></p>
                 <div id="loadProgressbar"></div>
             </div>
         </div>
-        <div id="control_bottom">
-            <div id="accordion">
+        <h3>Model info</h3>
+        <div>
+            <output id="list"></output>
+        </div>
+        <!--</div>-->
+        <!--<div id="control_bottom">-->
+            <!--<div id="accordion">-->
                 <h3>2D Render options</h3>
                 <div>
                     <input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
@@ -68,7 +80,7 @@
                     <input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
                     <input type="checkbox" id="analyzeModelCheckbox" value="6" onclick="GCODE.miscObject.processOptions()" checked>Analyze size and filament usage</input><br>
                 </div>
-            </div>
+            <!--</div>-->
             <!--<div id="options">-->
             <!--</div>-->
             <!--<div id="main_button_block">-->

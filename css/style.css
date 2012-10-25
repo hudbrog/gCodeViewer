@@ -21,7 +21,6 @@ html {
     /*border-radius: 5px;*/
 }
 #control {
-    background: #ffffff;
     float:left;
     width:300px;
     margin-top: 10px;
@@ -123,6 +122,10 @@ html {
     border: 0px none #dddddd;
     border-bottom-style: none;
     margin: 0px;
+}
+
+#accordion_top .ui-accordion-content{
+    padding: 5px;
 }
 
 #tabs-min .ui-tabs-panel {

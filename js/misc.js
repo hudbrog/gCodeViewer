@@ -45,6 +45,7 @@ GCODE.miscObject = (function(){
                     $("#loadProgressbar").progressbar({value:0});
                     GCODE.gCodeReader.loadFile(theFile);
                 };
+                $( "#accordion_top" ).accordion( "activate" , 1 );
                 reader.readAsText(f);
             }
 
@@ -116,6 +117,7 @@ GCODE.miscObject = (function(){
 //            });
 
 
+
             $('#tabs-min').bind('tabsselect', function(event, ui) {
                 console.log("got tab select");
                 if(tabSelector[ui.index]&&tabSelector[ui.index]=="3d"&&!GCODE.renderer3d.isModelReady()){
@@ -136,11 +138,14 @@ GCODE.miscObject = (function(){
 
             });
 
+//
+//            $(function() {
+//                $( "#accordion" ).accordion();
+//            });
 
             $(function() {
-                $( "#accordion" ).accordion();
+                $( "#accordion_top" ).accordion();
             });
-
 
             worker = new Worker('js/Worker.js');
 
@@ -160,7 +165,10 @@ GCODE.miscObject = (function(){
                         resultSet.push("<li>Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm</li><br>');
                         resultSet.push("<li>Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm</li><br>");
                         resultSet.push("<li>Estimated print time: " + parseFloat(parseFloat(data.msg.printTime)/60).toFixed(2) + "min</li><br>");
+                        resultSet.push("<li>Estimated layer height: " + data.msg.layerHeight.toFixed(2) + "mm</li><br>");
+                        resultSet.push("<li>Layer count: " + data.msg.layerCnt.toFixed(0) + "printed, " + data.msg.layerTotal.toFixed(0) + 'visited</li><br>');
                         document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
+                        $( "#accordion_top" ).accordion( "activate" , 2 );
 
                         break;
                     case 'returnLayer':
@@ -174,7 +182,7 @@ GCODE.miscObject = (function(){
                         break;
                     case "analyzeProgress":
                         if(!$("#loadProgressbar").visible){
-                            $("#progressName").html(data.msg.printTime);
+                            $("#progressName").html("Analyzing model:");
                             $("#loadProgressbar").show();
                         }
                         $("#loadProgressbar").progressbar({value:data.msg.progress});
