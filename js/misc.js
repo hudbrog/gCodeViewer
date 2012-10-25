@@ -120,12 +120,12 @@ GCODE.miscObject = (function(){
                 console.log("got tab select");
                 if(tabSelector[ui.index]&&tabSelector[ui.index]=="3d"&&!GCODE.renderer3d.isModelReady()){
                     console.log("we are going to 3d mode");
-                    $(function() {
-                        $( "#dialog-modal" ).dialog({
-                            height: 140,
-                            modal: true
-                        });
-                    });
+//                    $(function() {
+//                        $( "#dialog-modal" ).dialog({
+//                            height: 140,
+//                            modal: true
+//                        });
+//                    });
 //                    $(function() {
 //                        $( "#progressbar" ).progressbar({
 //                            value: 0
@@ -159,6 +159,7 @@ GCODE.miscObject = (function(){
                         var resultSet = [];
                         resultSet.push("<li>Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm</li><br>');
                         resultSet.push("<li>Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm</li><br>");
+                        resultSet.push("<li>Estimated print time: " + parseFloat(parseFloat(data.msg.printTime)/60).toFixed(2) + "min</li><br>");
                         document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
 
                         break;
@@ -173,13 +174,13 @@ GCODE.miscObject = (function(){
                         break;
                     case "analyzeProgress":
                         if(!$("#loadProgressbar").visible){
-                            $("#progressName").html("Analyzing model");
+                            $("#progressName").html(data.msg.printTime);
                             $("#loadProgressbar").show();
                         }
                         $("#loadProgressbar").progressbar({value:data.msg.progress});
                         break;
                     default:
-                        console.log("default msg received");
+                        console.log("default msg received" + data);
                 }
             }, false);
 

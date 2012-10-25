@@ -38,6 +38,7 @@ html {
     position: absolute;
     bottom: 0;
     width: 300px;
+    margin-bottom: 10px;
 }
 #options{
     float: left;
@@ -64,6 +65,7 @@ html {
     -webkit-border-radius: 5px;
     border-radius: 5px;
     padding: 40px;
+    margin: 5px;
     text-align: center;
     font: 20pt bold;
     color: #bbb
@@ -129,6 +131,8 @@ html {
 
 #progressBlock {
     margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
 }
 
 
