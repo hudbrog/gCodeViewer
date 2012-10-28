@@ -164,39 +164,32 @@ GCODE.renderer = (function(){
         ctx.beginPath();
         for(i=0;i<=gridSizeX;i+=gridStep){
             ctx.moveTo(i*zoomFactor+offsetX, 0+offsetY);
-            ctx.lineTo(i*zoomFactor+offsetX, gridSizeY*zoomFactor+offsetY);
+            ctx.lineTo(i*zoomFactor+offsetX, -gridSizeY*zoomFactor+offsetY);
         }
         ctx.stroke();
 
         ctx.beginPath();
         for(i=0;i<=gridSizeY;i+=gridStep){
-            ctx.moveTo(0+offsetX, i*zoomFactor+offsetY);
-            ctx.lineTo(gridSizeX*zoomFactor+offsetX, i*zoomFactor+offsetY);
+            ctx.moveTo(0+offsetX, -i*zoomFactor+offsetY);
+            ctx.lineTo(gridSizeX*zoomFactor+offsetX, -i*zoomFactor+offsetY);
         }
         ctx.stroke();
 
-    };
-
-    var getZ = function(layerNum){
-        var cmds = model[layerNum];
-        if(!cmds)return "error";
-        for(var i=0;i<cmds.length;i++){
-            if(cmds[i].z!==undefined)return cmds[i].z;
-        }
-        return -1;
     };
 
     var drawLayer = function(layerNum, progress){
         var i;
         layerNumStore=layerNum;
         progressStore = progress;
+        if(!model||!model[layerNum])return;
+
         var cmds = model[layerNum];
         var x, y;
 
         if(layerNum==0){
             if(model[0]&&model[0].x !== undefined &&model[0].y !== undefined){
                 prevX = model[0].x*zoomFactor;
-                prevY = model[0].y*zoomFactor;
+                prevY = -model[0].y*zoomFactor;
             }else {
                 prevX = 0;
                 prevY = 0;
@@ -207,7 +200,7 @@ GCODE.renderer = (function(){
                 prevY=undefined;
                 for(i=model[layerNum-1].length-1;i>=0;i--){
                     if(prevX === undefined && model[layerNum-1][i].x!==undefined)prevX=model[layerNum-1][i].x*zoomFactor;
-                    if(prevY === undefined && model[layerNum-1][i].y!==undefined)prevY=model[layerNum-1][i].y*zoomFactor;
+                    if(prevY === undefined && model[layerNum-1][i].y!==undefined)prevY=-model[layerNum-1][i].y*zoomFactor;
                 }
                 if(prevX === undefined)prevX=0;
                 if(prevY === undefined)prevY=0;
@@ -223,14 +216,13 @@ GCODE.renderer = (function(){
 
         drawGrid();
         ctx.strokeStyle = renderOptions["colorLine"];
-
         ctx.beginPath();
         for(i=0;i<progress;i++){
 //                console.log(cmds[i]);
             if(!cmds[i].x)x=prevX/zoomFactor;
             else x = cmds[i].x;
             if(!cmds[i].y)y=prevY/zoomFactor;
-            else y = cmds[i].y;
+            else y = -cmds[i].y;
 
 
             if(!cmds[i].extrude&&!cmds[i].noMove){
@@ -287,7 +279,7 @@ GCODE.renderer = (function(){
         init: function(){
             startCanvas();
             initialized = true;
-            ctx.translate(30-offsetX,30-offsetY);
+            ctx.translate(30-offsetX,gridSizeY*zoomFactor+20-offsetY);
         },
         setOption: function(options){
             for(var opt in options){
@@ -308,62 +300,46 @@ GCODE.renderer = (function(){
         debugGetModel: function(){
             return model;
         },
+        render: function(layerNum, progress){
+            if(!initialized)this.init();
+            if(!model){
+                drawGrid();
+            }else{
+                if(layerNum < model.length){
+                    drawLayer(layerNum, progress);
+                }else{
+                    console.log("Got request to render non-existent layer!!");
+                }
+            }
+        },
+        getModelNumLayers: function(){
+            return model?model.length:1;
+        },
+        getLayerNumSegments: function(layer){
+            if(model){
+                return model[layer]?model[layer].length:1;
+            }else{
+                return 1;
+            }
+        },
         doRender: function(mdl, layerNum){
             model = mdl;
-            sliderVer =  $( "#slider-vertical" );
-            sliderHor = $( "#slider-horizontal" );
             prevX=0;
             prevY=0;
-            var handle;
-
-
             if(!initialized)this.init();
 
-//TODO: need to remove UI stuff from here
-
-
-            sliderVer.slider({
-                orientation: "vertical",
-                range: "min",
-                min: 0,
-                max: model.length-1,
-                value: layerNum,
-                slide: function( event, ui ) {
-                    var progress = model[ui.value]?model[ui.value].length:0;
-                    drawLayer(ui.value, progress);
-                    sliderHor.slider({max: progress, value: progress});
-//                    handle.attr("title", 'Layer:' + ui.value + "\nZ:" + getZ(ui.value));
-                    $slideMe.text('Layer:' + ui.value + '\nZ:' + getZ(ui.value));
-//                    $( "#amount" ).val( ui.value );
-                }
-            });
-            $slideMe = $('<span/>')
-                .css({ 'position' : 'absolute' , left : 40, 'bottom': 0, 'color':'#0070A3' , 'display' : 'block', 'width':80})
-                .text('Layer:' + layerNum + '\nZ:' + getZ(layerNum))
-                .hide();
-
-            handle = $('.ui-slider-handle', sliderVer);
-            handle.append($slideMe).hover(function()
-                { $slideMe.show()},
-                function()
-                { $slideMe.hide()}
-            );
-
-            sliderHor.slider({
-                orientation: "horizontal",
-                range: "min",
-                min: 0,
-                max: model[layerNum]?model[layerNum].length:0,
-                value: model[layerNum]?model[layerNum].length:0,
-                slide: function( event, ui ) {
-                    drawLayer(sliderVer.slider("value"), ui.value);
-//                    console.log($("#slider-vertical").slider("value"));
-//                    console.log(sliderHor("value"));
-//                    $( "#amount" ).val( ui.value );
-                }
-            });
-
-            drawLayer(layerNum, model[layerNum].length);
+            this.render(layerNum, model[layerNum].length);
+        },
+        getZ: function(layerNum){
+            if(!model&&!model[layerNum]){
+                return '-1';
+            }
+            var cmds = model[layerNum];
+            for(var i=0;i<cmds.length;i++){
+                if(cmds[i].prevZ!==undefined)return cmds[i].prevZ;
+            }
+            return '-1';
         }
-    }
+
+}
 }());
