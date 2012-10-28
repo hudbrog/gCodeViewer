@@ -33,10 +33,10 @@ GCODE.renderer = (function(){
         colorRestart: "#0000ff",
         sizeRetractSpot: 2,
         modelCenter: {x: 0, y: 0},
-        moveModel: false
+        moveModel: true
     };
     var $slideMe;
-    var offsetX=0, offsetY=0;
+    var offsetModelX=0, offsetModelY=0;
 
 
     var reRender = function(){
@@ -160,18 +160,23 @@ GCODE.renderer = (function(){
     var drawGrid = function() {
         var i;
         ctx.strokeStyle = renderOptions["colorGrid"];
+        var offsetX=0, offsetY=0;
+        if(renderOptions["moveModel"]){
+            offsetX = offsetModelX;
+            offsetY = offsetModelY;
+        }
 
         ctx.beginPath();
         for(i=0;i<=gridSizeX;i+=gridStep){
-            ctx.moveTo(i*zoomFactor+offsetX, 0+offsetY);
-            ctx.lineTo(i*zoomFactor+offsetX, -gridSizeY*zoomFactor+offsetY);
+            ctx.moveTo(i*zoomFactor-offsetX, 0-offsetY);
+            ctx.lineTo(i*zoomFactor-offsetX, -gridSizeY*zoomFactor-offsetY);
         }
         ctx.stroke();
 
         ctx.beginPath();
         for(i=0;i<=gridSizeY;i+=gridStep){
-            ctx.moveTo(0+offsetX, -i*zoomFactor+offsetY);
-            ctx.lineTo(gridSizeX*zoomFactor+offsetX, -i*zoomFactor+offsetY);
+            ctx.moveTo(0-offsetX, -i*zoomFactor-offsetY);
+            ctx.lineTo(gridSizeX*zoomFactor-offsetX, -i*zoomFactor-offsetY);
         }
         ctx.stroke();
 
@@ -279,21 +284,12 @@ GCODE.renderer = (function(){
         init: function(){
             startCanvas();
             initialized = true;
-            ctx.translate(30-offsetX,gridSizeY*zoomFactor+20-offsetY);
+            ctx.translate(30,gridSizeY*zoomFactor+20);
         },
         setOption: function(options){
             for(var opt in options){
                 if(options.hasOwnProperty(opt))renderOptions[opt] = options[opt];
             };
-
-            if(renderOptions["moveModel"]){
-                offsetX = renderOptions["modelCenter"].x*zoomFactor-gridSizeX/2*zoomFactor;
-                offsetY = renderOptions["modelCenter"].y*zoomFactor-gridSizeY/2*zoomFactor;
-                if(ctx)ctx.translate(offsetX, offsetY);
-            }else{
-                offsetX=0;
-                offsetY=0;
-            }
 
             if(initialized)reRender();
         },
@@ -323,10 +319,16 @@ GCODE.renderer = (function(){
             }
         },
         doRender: function(mdl, layerNum){
+            var mdlInfo;
             model = mdl;
             prevX=0;
             prevY=0;
             if(!initialized)this.init();
+
+            mdlInfo = GCODE.gCodeReader.getModelInfo();
+            offsetModelX = (mdlInfo.min.x+mdlInfo.modelSize.x/2)*zoomFactor+gridSizeX/2*zoomFactor;
+            offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-gridSizeY/2*zoomFactor;
+            if(ctx)ctx.translate(offsetModelX, offsetModelY);
 
             this.render(layerNum, model[layerNum].length);
         },

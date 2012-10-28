@@ -102,14 +102,20 @@ GCODE.ui = (function(){
         switch (data.cmd) {
             case 'returnModel':
                 setProgress('loadProgress', 100);
-                GCODE.gCodeReader.passDataToRenderer();
-                initSliders();
+                worker.postMessage({
+                        "cmd":"analyzeModel",
+                        "msg":{
+                        }
+                    }
+                );
                 break;
             case 'analyzeDone':
                 var resultSet = [];
 
                 setProgress('analyzeProgress',100);
                 GCODE.gCodeReader.processAnalyzeModelDone(data.msg);
+                GCODE.gCodeReader.passDataToRenderer();
+                initSliders();
                 resultSet.push("Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm<br>');
                 resultSet.push("Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm<br>");
                 resultSet.push("Estimated print time: " + parseInt(parseFloat(data.msg.printTime)/60) + ":" + parseInt(parseFloat(data.msg.printTime)%60).toPrecision(2) + "<br>");

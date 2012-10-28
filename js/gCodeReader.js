@@ -108,12 +108,6 @@ GCODE.gCodeReader = (function(){
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);
             GCODE.renderer3d.setModel(model);
-            worker.postMessage({
-                    "cmd":"analyzeModel",
-                    "msg":{
-                    }
-                }
-            );
 
         },
         processLayerFromWorker: function(msg){
@@ -136,6 +130,14 @@ GCODE.gCodeReader = (function(){
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
+        },
+        getModelInfo: function(){
+            return {
+                min: min,
+                max: max,
+                modelSize: modelSize,
+                totalFilament: totalFilament
+            };
         }
     }
 }());
