@@ -103,7 +103,7 @@ GCODE.gCodeReader = (function(){
         },
         passDataToRenderer: function(mdl){
 //            model = mdl;
-            console.log(z_heights);
+//            console.log(z_heights);
             if(gCodeOptions["sortLayers"])sortLayers();
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);

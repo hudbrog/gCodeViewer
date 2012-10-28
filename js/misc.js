@@ -10,6 +10,24 @@ GCODE.miscObject = (function(){
 
     var tabSelector = ["2d","3d"];
 
+    var setProgress = function(id, progress){
+        $('#'+id).width(parseInt(progress)+'%');
+        $('#'+id).text(parseInt(progress)+'%');
+
+    };
+
+
+    var chooseAccordion = function(id){
+//        var parent = $('#accordion2');
+//        var actives =  parent && parent.find('.in');
+//        if(actives && actives.length){
+//            actives.collapse("hide");
+//
+//        }
+        $('#'+id).collapse("show");
+//        $('#'+id).addClass('in');
+    };
+
     return {
         worker: undefined,
         handleFileSelect: function(evt) {
@@ -39,13 +57,16 @@ GCODE.miscObject = (function(){
 
                 reader = new FileReader();
                 reader.onload = function(theFile){
-                    $("#progressName").html("Loading model:");
+//                    $("#progressName").html("Loading model:");
                     $("#list").html("");
-                    $("#loadProgressbar").show();
-                    $("#loadProgressbar").progressbar({value:0});
+//                    $("#loadProgressbar").show();
+//                    $("#loadProgressbar").progressbar({value:0});
+                    setProgress('loadProgress', 0);
                     GCODE.gCodeReader.loadFile(theFile);
                 };
-                $( "#accordion_top" ).accordion( "activate" , 1 );
+//                $( "#accordion_top" ).accordion( "activate" , 1 );
+                //$('#progressAccordionTab').collapse('show');
+                chooseAccordion('progressAccordionTab');
                 reader.readAsText(f);
             }
 
@@ -99,6 +120,14 @@ GCODE.miscObject = (function(){
 
             document.getElementById('file').addEventListener('change', GCODE.miscObject.handleFileSelect, false);
 
+            setProgress('loadProgress', 0);
+            setProgress('analyzeProgress', 0);
+//            $('#loadProgress').width('50%');
+//            $('#loadProgress').text($('#loadProgress').width()+'%');
+
+
+            $(".collapse").collapse({parent: '#accordion2'});
+
 //            $(function() {
 //                $( "#submit_button" )
 //                    .button()
@@ -143,9 +172,9 @@ GCODE.miscObject = (function(){
 //                $( "#accordion" ).accordion();
 //            });
 
-            $(function() {
-                $( "#accordion_top" ).accordion();
-            });
+//            $(function() {
+//                $( "#accordion_top" ).accordion();
+//            });
 
             worker = new Worker('js/Worker.js');
 
@@ -153,39 +182,45 @@ GCODE.miscObject = (function(){
                 var data = e.data;
                 switch (data.cmd) {
                     case 'returnModel':
-                        $("#progressName").html("");
-                        $("#loadProgressbar").hide();
+//                        $("#progressName").html("");
+//                        $("#loadProgressbar").hide();
+                        setProgress('loadProgress', 100);
                         GCODE.gCodeReader.passDataToRenderer();
                         break;
                     case 'analyzeDone':
-                        $("#progressName").html("");
-                        $("#loadProgressbar").hide();
-                        GCODE.gCodeReader.processAnalyzeModelDone(data.msg);
+//                        $("#progressName").html("");
+//                        $("#loadProgressbar").hide();
                         var resultSet = [];
+
+                        setProgress('analyzeProgress',100);
+                        GCODE.gCodeReader.processAnalyzeModelDone(data.msg);
                         resultSet.push("<li>Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm</li><br>');
                         resultSet.push("<li>Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm</li><br>");
-                        resultSet.push("<li>Estimated print time: " + parseFloat(parseFloat(data.msg.printTime)/60).toFixed(2) + "min</li><br>");
+                        resultSet.push("<li>Estimated print time: " + parseInt(parseFloat(data.msg.printTime)/60) + ":" + parseInt(parseFloat(data.msg.printTime)%60).toPrecision(2) + "</li><br>");
                         resultSet.push("<li>Estimated layer height: " + data.msg.layerHeight.toFixed(2) + "mm</li><br>");
                         resultSet.push("<li>Layer count: " + data.msg.layerCnt.toFixed(0) + "printed, " + data.msg.layerTotal.toFixed(0) + 'visited</li><br>');
                         document.getElementById('list').innerHTML =  '<ul>' + resultSet.join('') + '</ul>';
-                        $( "#accordion_top" ).accordion( "activate" , 2 );
+//                        $( "#accordion_top" ).accordion( "activate" , 2 );
+                        chooseAccordion('infoAccordionTab');
 
                         break;
                     case 'returnLayer':
                         GCODE.gCodeReader.processLayerFromWorker(data.msg);
-                        $(function() {
-                            $( "#loadProgressbar" ).progressbar({
-                                value: data.msg.progress
-                            });
-                        });
+                        setProgress('loadProgress',data.msg.progress);
+//                        $(function() {
+//                            $( "#loadProgressbar" ).progressbar({
+//                                value: data.msg.progress
+//                            });
+//                        });
 
                         break;
                     case "analyzeProgress":
-                        if(!$("#loadProgressbar").visible){
-                            $("#progressName").html("Analyzing model:");
-                            $("#loadProgressbar").show();
-                        }
-                        $("#loadProgressbar").progressbar({value:data.msg.progress});
+//                        if(!$("#loadProgressbar").visible){
+//                            $("#progressName").html("Analyzing model:");
+//                            $("#loadProgressbar").show();
+//                        }
+//                        $("#loadProgressbar").progressbar({value:data.msg.progress});
+                        setProgress('analyzeProgress',data.msg.progress);
                         break;
                     default:
                         console.log("default msg received" + data);

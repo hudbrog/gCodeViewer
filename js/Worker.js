@@ -138,7 +138,7 @@ GCODE.worker = (function(){
         modelSize.x = max.x - min.x;
         modelSize.y = max.y - min.y;
         modelSize.z = max.z - min.z;
-        layerHeight = (max.z-min.z)/layerCnt;
+        layerHeight = (max.z-min.z)/(layerCnt-1);
 
         sendAnalyzeDone();
     };

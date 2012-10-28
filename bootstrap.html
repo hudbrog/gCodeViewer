@@ -1,0 +1,138 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<head>
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+    <script type="text/javascript" src="js/jquery-1.8.2.js"></script>
+    <script type="text/javascript" src="js/jquery-ui-1.9.0.custom.js"></script>
+
+    <script type="text/javascript" src="js/three.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script type="text/javascript" src="js/modernizr.custom.09684.js"></script>
+    <script type="text/javascript" src="js/TrackballControls.js"></script>
+    <script type="text/javascript" src="js/misc.js"></script>
+    <script type="text/javascript" src="js/gCodeReader.js"></script>
+    <script type="text/javascript" src="js/renderer.js"></script>
+    <script type="text/javascript" src="js/renderer3d.js"></script>
+
+</head>
+<body>
+
+<div id="dialog-modal" title="Basic modal dialog" style="display: none;">
+    Generating 3d model<br>
+    <div id="progressbar"></div>
+</div>
+
+<div id="wrap" class="ui-widget ui-widget-content ui-corner-all">
+    <div id="control">
+        <center><h3>GCode<br>Visual Analyzer</h3></center>
+
+        <div id="accordion2" class="accordion">
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#fileAccordionTab">
+                        Select GCode file
+                    </a>
+                </div>
+                <div id="fileAccordionTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <input type="file" id="file" name="files" />
+                        <!--<form class="add-teacher" id="fAddTeacher" enctype="multipart/form-data" method="post" novalidate="novalidate">-->
+                        <!--<button id="selectFileButton">Select GCode File</button>-->
+                        <!--</form>-->
+                        <div id="drop_zone">Drop file here</div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#progressAccordionTab">
+                        Progress indicators
+                    </a>
+                </div>
+                <div id="progressAccordionTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <div id="progressBlock">
+                            <div class="progress" >
+                                <div id="loadProgress" class="bar" style="width: 0%;"></div>
+                            </div>
+                            <div class="progress" >
+                                <div id="analyzeProgress" class="bar" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#infoAccordionTab">
+                        Model info
+                    </a>
+                </div>
+                <div id="infoAccordionTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <output id="list"></output>
+                    </div>
+                </div>
+            </div>
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#options2DAccordionTab">
+                        2D Render options
+                    </a>
+                </div>
+                <div id="options2DAccordionTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.miscObject.processOptions()" checked>Show non-extrusion moves</input><br>
+                        <input type="checkbox" id="showRetractsCheckbox" value="2"  onclick="GCODE.miscObject.processOptions()" checked>Show retracts and restarts</input><br>
+                        <input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.miscObject.processOptions()" disabled>Move model to the center of the grid</input><br>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#analyzeOptionsAccordioinTab">
+                        GCode analyzer options
+                    </a>
+                </div>
+                <div id="analyzeOptionsAccordioinTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        These require re-analyzing file:<br>
+                        <input type="checkbox" id="sortLayersCheckbox" value="4" onclick="GCODE.miscObject.processOptions()" checked>Sort layers by Z</input><br>
+                        <input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.miscObject.processOptions()" checked>Hide empty layers</input><br>
+                        <input type="checkbox" id="analyzeModelCheckbox" value="6" onclick="GCODE.miscObject.processOptions()" checked>Analyze size and filament usage</input><br>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <div id="gcode">
+        <div id="tabs-min" class="tabbable">
+            <ul class="nav nav-tabs">
+                <li class="active"><a href="#tab2d" data-toggle="tab">2D</a></li>
+                <li class=""><a href="#tab3d" data-toggle="tab">3D</a></li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="tab2d">
+                    <canvas id="canvas" width="650" height="620"></canvas>
+                    <div id="slider-vertical"></div>
+                    <div id="slider-horizontal"></div>
+                </div>
+                <div class="tab-pane" id="tab3d">
+                    <div id="3d_container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    window.onload = GCODE.miscObject.initHandlers;
+</script>
+
+</body>
+</html>

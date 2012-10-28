@@ -39,6 +39,7 @@ GCODE.renderer3d = (function(){
         requestAnimationFrame(render);
     };
 
+
     var buildModelIteration = function(layerNum){
         var j;
         var cmds  = model[layerNum];
@@ -63,16 +64,17 @@ GCODE.renderer3d = (function(){
     var buildModelIteratively = function(){
         var i;
 
-        for(i=0;i<model.length;i+=3){
+        for(i=0;i<model.length;i+=1){
             buildModelIteration(i);
             //TODO: need to remove UI stuff from here
 
         }
-        var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 1, opacity: 0.4});
+        var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 2, opacity: 0.6, fog: false});
         geometry.computeBoundingBox();
         object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));
         var center = new THREE.Vector3().add(geometry.boundingBox.min, geometry.boundingBox.max).divideScalar(2);
         object.position = center.multiplyScalar(-1);
+
     }
 
     var buildModel = function(){
@@ -105,7 +107,7 @@ GCODE.renderer3d = (function(){
             });
 
         }
-        var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 1, opacity: 0.4});
+        var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 4, opacity: 1, fog: false});
         geometry.computeBoundingBox();
         object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));
         var center = new THREE.Vector3().add(geometry.boundingBox.min, geometry.boundingBox.max).divideScalar(2);
