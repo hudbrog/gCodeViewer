@@ -27,16 +27,19 @@ GCODE.renderer = (function(){
         showMoves: true,
         showRetracts: true,
         colorGrid: "#bbbbbb",
-        colorLine: "#000000",
+        colorLine: ["#000000", "#FA8805",  "#FA0505", "#5E08C7", "#ffff00", "#ff00ff","#00ffff"],
         colorMove: "#00ff00",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
         sizeRetractSpot: 2,
         modelCenter: {x: 0, y: 0},
-        moveModel: true
+        moveModel: true,
+        differentiateColors: true
     };
-    var $slideMe;
+
     var offsetModelX=0, offsetModelY=0;
+    var speeds = [];
+    var speedsByLayer = {};
 
 
     var reRender = function(){
@@ -183,7 +186,7 @@ GCODE.renderer = (function(){
     };
 
     var drawLayer = function(layerNum, progress){
-        var i;
+        var i, speedIndex= 0, prevZ = 0;
         layerNumStore=layerNum;
         progressStore = progress;
         if(!model||!model[layerNum])return;
@@ -215,23 +218,35 @@ GCODE.renderer = (function(){
             }
         }
 
+        prevZ = GCODE.renderer.getZ(layerNum);
+
         var p1 = ctx.transformedPoint(0,0);
         var p2 = ctx.transformedPoint(canvas.width,canvas.height);
         ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
 
         drawGrid();
-        ctx.strokeStyle = renderOptions["colorLine"];
-        ctx.beginPath();
+//        ctx.strokeStyle = renderOptions["colorLine"];
         for(i=0;i<progress;i++){
 //                console.log(cmds[i]);
             if(!cmds[i].x)x=prevX/zoomFactor;
             else x = cmds[i].x;
             if(!cmds[i].y)y=prevY/zoomFactor;
             else y = -cmds[i].y;
+            if(renderOptions["differentiateColors"]){
+                speedIndex = speedsByLayer[prevZ].indexOf(cmds[i].speed);
+                if(speedIndex === -1){
+                    speedIndex = 0;
+                }else if(speedIndex > renderOptions["colorLine"].length -1){
+                    speedIndex = speedIndex % (renderOptions["colorLine"].length-1);
+    //                console.log("Too much colors");
+                }
+            }else{
+                speedIndex=0;
+            }
 
 
             if(!cmds[i].extrude&&!cmds[i].noMove){
-                ctx.stroke();
+//                ctx.stroke();
                 if(cmds[i].retract == -1){
                     if(renderOptions["showRetracts"]){
                         ctx.strokeStyle = renderOptions["colorRetract"];
@@ -249,26 +264,29 @@ GCODE.renderer = (function(){
                     ctx.lineTo(x*zoomFactor,y*zoomFactor);
                     ctx.stroke();
                 }
-                ctx.strokeStyle = renderOptions["colorLine"];
-                ctx.beginPath();
+//                ctx.strokeStyle = renderOptions["colorLine"][0];
+//                ctx.beginPath();
 //                console.log("moveto: "+cmds[i].x+":"+cmds[i].y)
 //                ctx.moveTo(cmds[i].x*zoomFactor,cmds[i].y*zoomFactor);
             }
             else if(cmds[i].extrude){
                 if(cmds[i].retract==0){
+                    ctx.strokeStyle = renderOptions["colorLine"][speedIndex];
+                    ctx.beginPath();
                     ctx.moveTo(prevX, prevY);
                     ctx.lineTo(x*zoomFactor,y*zoomFactor);
+                    ctx.stroke();
                 }else {
                     if(renderOptions["showRetracts"]){
-                        ctx.stroke();
+//                        ctx.stroke();
                         ctx.strokeStyle = renderOptions["colorRestart"];
                         ctx.fillStyle = renderOptions["colorRestart"];
                         ctx.beginPath();
                         ctx.arc(prevX, prevY, renderOptions["sizeRetractSpot"], 0, Math.PI*2, true);
                         ctx.stroke();
                         ctx.fill();
-                        ctx.strokeStyle = renderOptions["colorLine"];
-                        ctx.beginPath();
+//                        ctx.strokeStyle = renderOptions["colorLine"][0];
+//                        ctx.beginPath();
                     }
                 }
             }
@@ -292,6 +310,9 @@ GCODE.renderer = (function(){
             };
 
             if(initialized)reRender();
+        },
+        getOptions: function(){
+            return renderOptions;
         },
         debugGetModel: function(){
             return model;
@@ -326,7 +347,11 @@ GCODE.renderer = (function(){
             if(!initialized)this.init();
 
             mdlInfo = GCODE.gCodeReader.getModelInfo();
-            offsetModelX = (mdlInfo.min.x+mdlInfo.modelSize.x/2)*zoomFactor+gridSizeX/2*zoomFactor;
+            speeds = mdlInfo.speeds;
+            speedsByLayer = mdlInfo.speedsByLayer;
+            console.log(speeds);
+            console.log(mdlInfo.min.x + ' ' + mdlInfo.modelSize.x);
+            offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
             offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-gridSizeY/2*zoomFactor;
             if(ctx)ctx.translate(offsetModelX, offsetModelY);
 

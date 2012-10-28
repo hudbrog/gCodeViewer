@@ -24,6 +24,8 @@ GCODE.worker = (function(){
     var printTime=0;
     var layerHeight=0;
     var layerCnt = 0;
+    var speeds = [];
+    var speedsByLayer = {};
 
 
     var sendLayerToParent = function(layerNum, z, progress){
@@ -61,7 +63,9 @@ GCODE.worker = (function(){
                 printTime: printTime,
                 layerHeight: layerHeight,
                 layerCnt: layerCnt,
-                layerTotal: model.length
+                layerTotal: model.length,
+                speeds: speeds,
+                speedsByLayer: speedsByLayer
             }
         });
     };
@@ -84,10 +88,11 @@ GCODE.worker = (function(){
     };
 
 
-    var analyzeSize = function(){
+    var analyzeModel = function(){
         var i,j;
         var x_ok=false, y_ok=false;
         var cmds;
+        var tmp1= 0, tmp2=0;
 //        var moveTime=0;
 
         for(i=0;i<model.length;i++){
@@ -126,8 +131,28 @@ GCODE.worker = (function(){
 
                 if(x_ok&&y_ok){
                     printTime += Math.sqrt(Math.pow(parseFloat(cmds[j].x)-parseFloat(cmds[j].prevX),2)+Math.pow(parseFloat(cmds[j].y)-parseFloat(cmds[j].prevY),2))/(cmds[j].speed/60);
-                }else if(cmds[j].retract!=0&&cmds[j].extrusion!=0){
+                }else if(cmds[j].retract===0&&cmds[j].extrusion!==0){
+                    tmp1 = Math.sqrt(Math.pow(parseFloat(cmds[j].x)-parseFloat(cmds[j].prevX),2)+Math.pow(parseFloat(cmds[j].y)-parseFloat(cmds[j].prevY),2))/(cmds[j].speed/60);
+                    tmp2 = Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
+                    printTime += tmp1>=tmp2?tmp1:tmp2;
+                }else if(cmds[j].retract!==0){
                     printTime += Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
+                }
+
+                if(typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude && cmds[j].retract === 0){
+                    if (speeds.indexOf(cmds[j].speed) === -1) {
+                        speeds.push(cmds[j].speed);
+                    }
+                    if(typeof(speedsByLayer[cmds[j].prevZ]) === 'undefined'){
+                        speedsByLayer[cmds[j].prevZ] = [];
+                        speedsByLayer[cmds[j].prevZ].push(cmds[j].speed);
+                    }else if(speedsByLayer[cmds[j].prevZ].indexOf(cmds[j].speed) === -1){
+                        speedsByLayer[cmds[j].prevZ].push(cmds[j].speed);
+                        if(parseFloat(cmds[j].speed)>6000){
+                            var zz = cmds[j].extrude?'tr':'fa';
+                            self.postMessage("z:"+cmds[j].prevZ+" e: " + zz + " r:" + cmds[j].retract + " j:" + j);
+                        }
+                    }
                 }
 
             }
@@ -136,10 +161,10 @@ GCODE.worker = (function(){
         }
         purgeLayers();
 
-        modelSize.x = max.x - min.x;
-        modelSize.y = max.y - min.y;
-        modelSize.z = max.z - min.z;
-//        self.postMessage('max: ' + max.z + "min = " + min.z);
+        modelSize.x = Math.abs(max.x - min.x);
+        modelSize.y = Math.abs(max.y - min.y);
+        modelSize.z = Math.abs(max.z - min.z);
+        self.postMessage('max: ' + max.z + "min = " + min.z);
         layerHeight = (max.z-min.z)/(layerCnt-1);
 
         sendAnalyzeDone();
@@ -303,7 +328,7 @@ GCODE.worker = (function(){
 
         },
         runAnalyze: function(message){
-            analyzeSize();
+            analyzeModel();
         },
         setOption: function(options){
             for(var opt in options){

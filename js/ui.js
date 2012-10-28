@@ -22,11 +22,22 @@ GCODE.ui = (function(){
         var z = GCODE.renderer.getZ(layerNum);
         var segments = GCODE.renderer.getLayerNumSegments(layerNum);
         var filament = GCODE.gCodeReader.getLayerFilament(z);
+        var layerSpeeds = GCODE.gCodeReader.getLayerSpeeds(z);
+        var colors = GCODE.renderer.getOptions()["colorLine"];
+        var speedIndex = 0;
+        var i = 0;
         var output = [];
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
         output.push("GCODE commands in layer: " + segments);
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
+        for(i=0;i<layerSpeeds.length;i++){
+            speedIndex = i;
+            if(speedIndex > colors.length -1){
+                speedIndex = speedIndex % (colors.length-1);
+            }
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[i])/60).toFixed(2)+"mm/s");
+        }
         $('#layerInfo').html(output.join('<br>'));
         chooseAccordion('layerAccordionTab');
     };
@@ -217,11 +228,11 @@ GCODE.ui = (function(){
             else GCODE.gCodeReader.setOption({analyzeModel: false});
 
 
-            if(document.getElementById('sortLayersCheckbox').checked) worker.postMessage({"cmd":"setOption", "msg":{sortLayers: true}});
-            else  worker.postMessage({"cmd":"setOption", "msg":{sortLayers: false}});
-
-            if(document.getElementById('purgeEmptyLayersCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: true}});
-            else worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: false}});
+//            if(document.getElementById('sortLayersCheckbox').checked) worker.postMessage({"cmd":"setOption", "msg":{sortLayers: true}});
+//            else  worker.postMessage({"cmd":"setOption", "msg":{sortLayers: false}});
+//
+//            if(document.getElementById('purgeEmptyLayersCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: true}});
+//            else worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: false}});
 
             if(document.getElementById('analyzeModelCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: true}});
             else worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: false}});
@@ -235,6 +246,9 @@ GCODE.ui = (function(){
 
             if(document.getElementById('showRetractsCheckbox').checked)GCODE.renderer.setOption({showRetracts: true});
             else GCODE.renderer.setOption({showRetracts: false});
+
+            if(document.getElementById('differentiateColorsCheckbox').checked)GCODE.renderer.setOption({differentiateColors: true});
+            else GCODE.renderer.setOption({differentiateColors: false});
         }
     }
 }());

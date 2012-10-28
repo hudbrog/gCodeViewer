@@ -14,6 +14,8 @@ GCODE.gCodeReader = (function(){
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
     var totalFilament=0;
+    var speeds = [];
+    var speedsByLayer = {};
     var gCodeOptions = {
         sortLayers: false,
         purgeEmptyLayers: true,
@@ -127,16 +129,23 @@ GCODE.gCodeReader = (function(){
             modelSize = msg.modelSize;
             totalFilament = msg.totalFilament;
             filamentByLayer = msg.filamentByLayer;
+            speeds = msg.speeds;
+            speedsByLayer = msg.speedsByLayer;
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
+        },
+        getLayerSpeeds: function(z){
+          return speedsByLayer[z]?speedsByLayer[z]:{};
         },
         getModelInfo: function(){
             return {
                 min: min,
                 max: max,
                 modelSize: modelSize,
-                totalFilament: totalFilament
+                totalFilament: totalFilament,
+                speeds: speeds,
+                speedsByLayer: speedsByLayer
             };
         }
     }
