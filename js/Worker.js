@@ -80,6 +80,7 @@ GCODE.worker = (function(){
                 layerCnt+=1;
             }
         }
+//        self.postMessage('LayerCnt: ' + layerCnt);
     };
 
 
@@ -95,7 +96,7 @@ GCODE.worker = (function(){
             for(j=0;j<cmds.length;j++){
                 x_ok=false;
                 y_ok=false;
-                if(typeof(cmds[j].x) !== 'undefined'&&typeof(cmds[j].prevX) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined')
+                if(typeof(cmds[j].x) !== 'undefined'&&typeof(cmds[j].prevX) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude)
                 {
                     max.x = parseFloat(max.x)>parseFloat(cmds[j].x)?parseFloat(max.x):parseFloat(cmds[j].x);
                     max.x = parseFloat(max.x)>parseFloat(cmds[j].prevX)?parseFloat(max.x):parseFloat(cmds[j].prevX);
@@ -104,7 +105,7 @@ GCODE.worker = (function(){
                     x_ok=true;
                 }
 
-                if(typeof(cmds[j].y) !== 'undefined'&&typeof(cmds[j].prevY) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'){
+                if(typeof(cmds[j].y) !== 'undefined'&&typeof(cmds[j].prevY) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude){
                     max.y = parseFloat(max.y)>parseFloat(cmds[j].y)?parseFloat(max.y):parseFloat(cmds[j].y);
                     max.y = parseFloat(max.y)>parseFloat(cmds[j].prevY)?parseFloat(max.y):parseFloat(cmds[j].prevY);
                     min.y = parseFloat(min.y)<parseFloat(cmds[j].y)?parseFloat(min.y):parseFloat(cmds[j].y);
@@ -112,7 +113,7 @@ GCODE.worker = (function(){
                     y_ok=true;
                 }
 
-                if(typeof(cmds[j].prevZ) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'){
+                if(typeof(cmds[j].prevZ) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude){
                     max.z = parseFloat(max.z)>parseFloat(cmds[j].prevZ)?parseFloat(max.z):parseFloat(cmds[j].prevZ);
                     min.z = parseFloat(min.z)<parseFloat(cmds[j].prevZ)?parseFloat(min.z):parseFloat(cmds[j].prevZ);
                 }
@@ -138,6 +139,7 @@ GCODE.worker = (function(){
         modelSize.x = max.x - min.x;
         modelSize.y = max.y - min.y;
         modelSize.z = max.z - min.z;
+//        self.postMessage('max: ' + max.z + "min = " + min.z);
         layerHeight = (max.z-min.z)/(layerCnt-1);
 
         sendAnalyzeDone();
