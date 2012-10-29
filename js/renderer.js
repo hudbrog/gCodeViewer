@@ -17,7 +17,7 @@ GCODE.renderer = (function(){
 
 //    var colorGrid="#bbbbbb", colorLine="#000000";
     var sliderHor, sliderVer;
-    var layerNumStore, progressStore;
+    var layerNumStore, progressStore={from: 0, to: -1};
     var lastX, lastY;
     var dragStart,dragged;
     var scaleFactor = 1.1;
@@ -43,7 +43,8 @@ GCODE.renderer = (function(){
 
 
     var reRender = function(){
-        drawLayer(layerNumStore, progressStore);
+
+        drawLayer(layerNumStore, progressStore.from, progressStore.to);
     };
 
     function trackTransforms(ctx){
@@ -185,16 +186,23 @@ GCODE.renderer = (function(){
 
     };
 
-    var drawLayer = function(layerNum, progress){
+    var drawLayer = function(layerNum, fromProgress, toProgress){
         var i, speedIndex= 0, prevZ = 0;
         layerNumStore=layerNum;
-        progressStore = progress;
+        progressStore = {from: fromProgress, to: toProgress};
         if(!model||!model[layerNum])return;
 
         var cmds = model[layerNum];
         var x, y;
 
-        if(layerNum==0){
+//        if(toProgress === -1){
+//            toProgress=cmds.length;
+//        }
+
+        if(fromProgress>0){
+            prevX = cmds[fromProgress-1].x*zoomFactor;
+            prevY = -cmds[fromProgress-1].y*zoomFactor;
+        }else if(fromProgress===0 && layerNum==0){
             if(model[0]&&model[0].x !== undefined &&model[0].y !== undefined){
                 prevX = model[0].x*zoomFactor;
                 prevY = -model[0].y*zoomFactor;
@@ -226,7 +234,7 @@ GCODE.renderer = (function(){
 
         drawGrid();
 //        ctx.strokeStyle = renderOptions["colorLine"];
-        for(i=0;i<progress;i++){
+        for(i=fromProgress;i<toProgress;i++){
 //                console.log(cmds[i]);
             if(!cmds[i].x)x=prevX/zoomFactor;
             else x = cmds[i].x;
@@ -321,13 +329,13 @@ GCODE.renderer = (function(){
         debugGetModel: function(){
             return model;
         },
-        render: function(layerNum, progress){
+        render: function(layerNum, fromProgress, toProgress){
             if(!initialized)this.init();
             if(!model){
                 drawGrid();
             }else{
                 if(layerNum < model.length){
-                    drawLayer(layerNum, progress);
+                    drawLayer(layerNum, fromProgress, toProgress);
                 }else{
                     console.log("Got request to render non-existent layer!!");
                 }
@@ -353,13 +361,13 @@ GCODE.renderer = (function(){
             mdlInfo = GCODE.gCodeReader.getModelInfo();
             speeds = mdlInfo.speeds;
             speedsByLayer = mdlInfo.speedsByLayer;
-            console.log(speeds);
-            console.log(mdlInfo.min.x + ' ' + mdlInfo.modelSize.x);
+//            console.log(speeds);
+//            console.log(mdlInfo.min.x + ' ' + mdlInfo.modelSize.x);
             offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
             offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-gridSizeY/2*zoomFactor;
             if(ctx)ctx.translate(offsetModelX, offsetModelY);
 
-            this.render(layerNum, model[layerNum].length);
+            this.render(layerNum, 0, model[layerNum].length);
         },
         getZ: function(layerNum){
             if(!model&&!model[layerNum]){

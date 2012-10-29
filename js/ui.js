@@ -122,10 +122,10 @@ GCODE.ui = (function(){
             value: 0,
             slide: function( event, ui ) {
                 var progress = GCODE.renderer.getLayerNumSegments(ui.value)-1;
-                GCODE.renderer.render(ui.value, progress);
-                sliderHor.slider({max: progress, value: progress});
+                GCODE.renderer.render(ui.value,0, progress);
+                sliderHor.slider({max: progress, values: [0,progress]});
                 setLinesColor(false); //clear current selection
-                gCodeLines = GCODE.gCodeReader.getGCodeLines(ui.value, sliderHor.slider("value"));
+                gCodeLines = GCODE.gCodeReader.getGCodeLines(ui.value, sliderHor.slider("values",0), sliderHor.slider("values",1));
                 setLinesColor(true); // highlight lines
                 printLayerInfo(ui.value);
             }
@@ -136,12 +136,12 @@ GCODE.ui = (function(){
             range: "min",
             min: 0,
             max: GCODE.renderer.getLayerNumSegments(0)-1,
-            value: GCODE.renderer.getLayerNumSegments(0)-1,
+            values: [0,GCODE.renderer.getLayerNumSegments(0)-1],
             slide: function( event, ui ) {
                 setLinesColor(false); //clear current selection
-                gCodeLines = GCODE.gCodeReader.getGCodeLines(sliderVer.slider("value"),ui.value);
+                gCodeLines = GCODE.gCodeReader.getGCodeLines(sliderVer.slider("value"),ui.values[0], ui.values[1]);
                 setLinesColor(true); // highlight lines
-                GCODE.renderer.render(sliderVer.slider("value"), ui.value);
+                GCODE.renderer.render(sliderVer.slider("value"), ui.values[0], ui.values[1]);
             }
         });
     };

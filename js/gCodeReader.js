@@ -147,9 +147,9 @@ GCODE.gCodeReader = (function(){
                 speedsByLayer: speedsByLayer
             };
         },
-        getGCodeLines: function(layer, segments){
+        getGCodeLines: function(layer, fromSegments, toSegments){
             var i=0;
-            var result = {first: model[layer][0].gcodeLine, last: model[layer][segments].gcodeLine};
+            var result = {first: model[layer][fromSegments].gcodeLine, last: model[layer][toSegments].gcodeLine};
             return result;
         }
     }
