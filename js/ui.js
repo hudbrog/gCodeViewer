@@ -7,6 +7,10 @@ var GCODE = {};
 
 GCODE.ui = (function(){
     var reader;
+    var myCodeMirror;
+    var sliderVer;
+    var sliderHor;
+    var gCodeLines = {first: 0, last: 0};
 
     var setProgress = function(id, progress){
         $('#'+id).width(parseInt(progress)+'%');
@@ -18,27 +22,54 @@ GCODE.ui = (function(){
         $('#'+id).collapse("show");
     };
 
+    var setLinesColor = function(toggle){
+        var i=0;
+        for(i=gCodeLines.first;i<gCodeLines.last; i++){
+            if(toggle){
+                myCodeMirror.setLineClass(Number(i), null, "activeline");
+            }else{
+                myCodeMirror.setLineClass(Number(i), null, null);
+            }
+        }
+    }
+
     var printLayerInfo = function(layerNum){
         var z = GCODE.renderer.getZ(layerNum);
         var segments = GCODE.renderer.getLayerNumSegments(layerNum);
         var filament = GCODE.gCodeReader.getLayerFilament(z);
         var layerSpeeds = GCODE.gCodeReader.getLayerSpeeds(z);
-        var colors = GCODE.renderer.getOptions()["colorLine"];
+        var renderOptions = GCODE.renderer.getOptions();
+        var colors = renderOptions["colorLine"];
         var speedIndex = 0;
+        var showMove=false;
         var i = 0;
-        var output = [];
+        var output = [], retractOutput = [], moveOutput = [];
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
         output.push("GCODE commands in layer: " + segments);
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
+        output.push("Extrude speeds:");
+        moveOutput.push("Move speeds:");
+        retractOutput.push("Retract speeds:");
         for(i=0;i<layerSpeeds.length;i++){
+            if(typeof(layerSpeeds[i])==='undefined'){
+                continue;
+            }
             speedIndex = i;
             if(speedIndex > colors.length -1){
                 speedIndex = speedIndex % (colors.length-1);
             }
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[i])/60).toFixed(2)+"mm/s");
+            if(layerSpeeds[i]["type"]==='move'){
+                moveOutput.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds[i]["speed"])/60).toFixed(2)+"mm/s");
+            }else if(layerSpeeds[i]["type"]==='retract'){
+                retractOutput.push("<span style='color: " + renderOptions['colorRetract'] +"'>*</span> = " +(parseFloat(layerSpeeds[i]["speed"])/60).toFixed(2)+"mm/s");
+            }else if(layerSpeeds[i]["type"]==='extrude'){
+                output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[i]["speed"])/60).toFixed(2)+"mm/s");
+            }else {
+                output.push("Found a speed info of unknown type! This is a bug!");
+            }
         }
-        $('#layerInfo').html(output.join('<br>'));
+        $('#layerInfo').html((output.concat(moveOutput, retractOutput)).join('<br>'));
         chooseAccordion('layerAccordionTab');
     };
 
@@ -63,6 +94,7 @@ GCODE.ui = (function(){
             reader.onload = function(theFile){
                 chooseAccordion('progressAccordionTab');
                 setProgress('loadProgress', 0);
+                myCodeMirror.setValue(theFile.target.result);
                 GCODE.gCodeReader.loadFile(theFile);
             };
             reader.readAsText(f);
@@ -76,11 +108,11 @@ GCODE.ui = (function(){
     };
 
     var initSliders = function(){
-        var sliderVer =  $( "#slider-vertical" );
-        var sliderHor = $( "#slider-horizontal" );
         var prevX=0;
         var prevY=0;
         var handle;
+        sliderVer =  $( "#slider-vertical" );
+        sliderHor = $( "#slider-horizontal" );
 
         sliderVer.slider({
             orientation: "vertical",
@@ -91,8 +123,11 @@ GCODE.ui = (function(){
             slide: function( event, ui ) {
                 var progress = GCODE.renderer.getLayerNumSegments(ui.value)-1;
                 GCODE.renderer.render(ui.value, progress);
-                printLayerInfo(ui.value);
                 sliderHor.slider({max: progress, value: progress});
+                setLinesColor(false); //clear current selection
+                gCodeLines = GCODE.gCodeReader.getGCodeLines(ui.value, sliderHor.slider("value"));
+                setLinesColor(true); // highlight lines
+                printLayerInfo(ui.value);
             }
         });
 
@@ -103,6 +138,9 @@ GCODE.ui = (function(){
             max: GCODE.renderer.getLayerNumSegments(0)-1,
             value: GCODE.renderer.getLayerNumSegments(0)-1,
             slide: function( event, ui ) {
+                setLinesColor(false); //clear current selection
+                gCodeLines = GCODE.gCodeReader.getGCodeLines(sliderVer.slider("value"),ui.value);
+                setLinesColor(true); // highlight lines
                 GCODE.renderer.render(sliderVer.slider("value"), ui.value);
             }
         });
@@ -205,7 +243,18 @@ GCODE.ui = (function(){
                 console.log("Switching to 3d mode");
                 $(this).tab('show');
                 GCODE.renderer3d.doRender();
-            })
+            });
+
+            $('#myTab a[href="#tabGCode"]').click(function (e) {
+                e.preventDefault();
+                console.log("Switching to GCode preview mode");
+                $(this).tab('show');
+                myCodeMirror.refresh();
+                console.log(gCodeLines);
+                myCodeMirror.setCursor(Number(gCodeLines.first),0);
+//                myCodeMirror.setSelection({line:Number(gCodeLines.first),ch:0},{line:Number(gCodeLines.last),ch:0});
+                myCodeMirror.focus();
+            });
 
             worker = new Worker('js/Worker.js');
 
@@ -215,6 +264,27 @@ GCODE.ui = (function(){
             GCODE.renderer.render(0,0);
 
             console.log("Application initialized");
+
+            myCodeMirror = new CodeMirror( document.getElementById('gCodeContainer'), {
+                lineNumbers: true,
+                gutters: ['CodeMirror-linenumbers']
+            });
+            myCodeMirror.setSize("680","640");
+            console.log(myCodeMirror);
+
+
+        },
+
+        ArrayIndexOf: function(a, fnc) {
+            if (!fnc || typeof (fnc) != 'function') {
+                return -1;
+            }
+            if (!a || !a.length || a.length < 1) return -1;
+            for (var i = 0; i < a.length; i++) {
+                if(!a[i]) continue;
+                if (fnc(a[i])) return i;
+            }
+            return -1;
         },
 
         processOptions: function(){

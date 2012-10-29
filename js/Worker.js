@@ -93,6 +93,8 @@ GCODE.worker = (function(){
         var x_ok=false, y_ok=false;
         var cmds;
         var tmp1= 0, tmp2=0;
+        var speedIndex=0;
+        var type;
 //        var moveTime=0;
 
         for(i=0;i<model.length;i++){
@@ -139,20 +141,25 @@ GCODE.worker = (function(){
                     printTime += Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
                 }
 
-                if(typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude && cmds[j].retract === 0){
-                    if (speeds.indexOf(cmds[j].speed) === -1) {
-                        speeds.push(cmds[j].speed);
+                speedIndex = speeds.indexOf(cmds[j].speed);
+                if (speedIndex === -1) {
+                    speeds.push(cmds[j].speed);
+                    speedIndex = speeds.indexOf(cmds[j].speed);
+                }
+                if(typeof(speedsByLayer[cmds[j].prevZ]) === 'undefined'){
+                    speedsByLayer[cmds[j].prevZ] = [];
+                }
+                if(speedsByLayer[cmds[j].prevZ].indexOf(cmds[j].speed) === -1){
+                    if(cmds[j].extrude&&cmds[j].retract===0){
+                        type = 'extrude';
+                    }else if(cmds[j].retract!==0){
+                        type = 'retract';
+                    }else if(!cmds[j].extrude&&cmds[j].retract===0){
+                        type = 'move';
+                    }else {
+                        type = 'unknown';
                     }
-                    if(typeof(speedsByLayer[cmds[j].prevZ]) === 'undefined'){
-                        speedsByLayer[cmds[j].prevZ] = [];
-                        speedsByLayer[cmds[j].prevZ].push(cmds[j].speed);
-                    }else if(speedsByLayer[cmds[j].prevZ].indexOf(cmds[j].speed) === -1){
-                        speedsByLayer[cmds[j].prevZ].push(cmds[j].speed);
-                        if(parseFloat(cmds[j].speed)>6000){
-                            var zz = cmds[j].extrude?'tr':'fa';
-                            self.postMessage("z:"+cmds[j].prevZ+" e: " + zz + " r:" + cmds[j].retract + " j:" + j);
-                        }
-                    }
+                    speedsByLayer[cmds[j].prevZ][speedIndex] = {speed: cmds[j].speed, type: type};
                 }
 
             }
@@ -254,9 +261,9 @@ GCODE.worker = (function(){
                     }
                 }
                 if(!model[layer])model[layer]=[];
-                if(x !== undefined || y !== undefined ||z !== undefined||retract!=0) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF};
-                if(x !== undefined) prevX = x;
-                if(y !== undefined) prevY = y;
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
+                if(typeof(x) !== 'undefined') prevX = x;
+                if(typeof(y) !== 'undefined') prevY = y;
             } else if(gcode[i].match(/^(?:M82)/i)){
                 extrudeRelative = false;
             }else if(gcode[i].match(/^(?:G91)/i)){
@@ -292,14 +299,14 @@ GCODE.worker = (function(){
                     }
                 }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: true, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: true, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF,gcodeLine: i};
             }else if(gcode[i].match(/^(?:G28)/i)){
                 x=0, y=0,z=0,prevZ=0, extrude=false;
                 if(typeof(prevX) === 'undefined'){prevX=0;}
                 if(typeof(prevY) === 'undefined'){prevY=0;}
 
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
             }
             if(typeof(sendLayer) !== "undefined"){
                 sendLayerToParent(sendLayer, sendLayerZ, i/gcode.length*100);

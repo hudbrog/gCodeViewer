@@ -73,6 +73,7 @@ GCODE.gCodeReader = (function(){
     };
 
 
+
 // ***** PUBLIC *******
     return {
 
@@ -81,14 +82,13 @@ GCODE.gCodeReader = (function(){
             model = [];
             z_heights = [];
 
-            var str = reader.target.result;
-            lines = str.split(/(\r\n|\n)+/);
-            prepareGCode();
+            lines = reader.target.result.split(/\n/);
+//            prepareGCode();
 
             worker.postMessage({
                     "cmd":"parseGCode",
                     "msg":{
-                        gcode: gcode,
+                        gcode: lines,
                         options: {
                             firstReport: 5
                         }
@@ -105,7 +105,6 @@ GCODE.gCodeReader = (function(){
         },
         passDataToRenderer: function(mdl){
 //            model = mdl;
-//            console.log(z_heights);
             if(gCodeOptions["sortLayers"])sortLayers();
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);
@@ -147,6 +146,11 @@ GCODE.gCodeReader = (function(){
                 speeds: speeds,
                 speedsByLayer: speedsByLayer
             };
+        },
+        getGCodeLines: function(layer, segments){
+            var i=0;
+            var result = {first: model[layer][0].gcodeLine, last: model[layer][segments].gcodeLine};
+            return result;
         }
     }
 }());
