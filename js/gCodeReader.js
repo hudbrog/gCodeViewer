@@ -13,6 +13,7 @@ GCODE.gCodeReader = (function(){
     var min = {x: undefined, y: undefined, z: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
+    var printTimeByLayer;
     var totalFilament=0;
     var printTime=0;
     var speeds = {};
@@ -134,6 +135,7 @@ GCODE.gCodeReader = (function(){
             speeds = msg.speeds;
             speedsByLayer = msg.speedsByLayer;
             printTime = msg.printTime;
+            printTimeByLayer = msg.printTimeByLayer;
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
@@ -149,7 +151,8 @@ GCODE.gCodeReader = (function(){
                 totalFilament: totalFilament,
                 speeds: speeds,
                 speedsByLayer: speedsByLayer,
-                printTime: printTime
+                printTime: printTime,
+                printTimeByLayer: printTimeByLayer
             };
         },
         getGCodeLines: function(layer, fromSegments, toSegments){

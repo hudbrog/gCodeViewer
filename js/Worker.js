@@ -19,6 +19,7 @@
     var filamentByLayer = {};
     var totalFilament=0;
     var printTime=0;
+    var printTimeByLayer = {};
     var layerHeight=0;
     var layerCnt = 0;
     var speeds = {extrude: [], retract: [], move: []};
@@ -62,7 +63,8 @@
                 layerCnt: layerCnt,
                 layerTotal: model.length,
                 speeds: speeds,
-                speedsByLayer: speedsByLayer
+                speedsByLayer: speedsByLayer,
+                printTimeByLayer: printTimeByLayer
             }
         });
     };
@@ -92,6 +94,7 @@
         var tmp1= 0, tmp2=0;
         var speedIndex=0;
         var type;
+        var printTimeAdd=0;
 //        var moveTime=0;
 
         for(i=0;i<model.length;i++){
@@ -129,14 +132,18 @@
                 }
 
                 if(x_ok&&y_ok){
-                    printTime += Math.sqrt(Math.pow(parseFloat(cmds[j].x)-parseFloat(cmds[j].prevX),2)+Math.pow(parseFloat(cmds[j].y)-parseFloat(cmds[j].prevY),2))/(cmds[j].speed/60);
+                    printTimeAdd = Math.sqrt(Math.pow(parseFloat(cmds[j].x)-parseFloat(cmds[j].prevX),2)+Math.pow(parseFloat(cmds[j].y)-parseFloat(cmds[j].prevY),2))/(cmds[j].speed/60);
                 }else if(cmds[j].retract===0&&cmds[j].extrusion!==0){
                     tmp1 = Math.sqrt(Math.pow(parseFloat(cmds[j].x)-parseFloat(cmds[j].prevX),2)+Math.pow(parseFloat(cmds[j].y)-parseFloat(cmds[j].prevY),2))/(cmds[j].speed/60);
                     tmp2 = Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
-                    printTime += tmp1>=tmp2?tmp1:tmp2;
+                    printTimeAdd = tmp1>=tmp2?tmp1:tmp2;
                 }else if(cmds[j].retract!==0){
-                    printTime += Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
+                    printTimeAdd = Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
                 }
+
+                printTime += printTimeAdd;
+                if(typeof(printTimeByLayer[cmds[j].prevZ])==='undefined'){printTimeByLayer[cmds[j].prevZ]=0;}
+                printTimeByLayer[cmds[j].prevZ] += printTimeAdd;
 
                 if(cmds[j].extrude&&cmds[j].retract===0){
                     type = 'extrude';

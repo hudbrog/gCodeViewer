@@ -47,35 +47,39 @@ GCODE.ui = (function(){
         var keys, type;
         var showMove=false;
         var i = 0;
-        var output = [], retractOutput = [], moveOutput = [];
+        var output = [];
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
         output.push("GCODE commands in layer: " + segments);
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
+        output.push("Print time for layer: " + parseFloat(GCODE.gCodeReader.getModelInfo().printTimeByLayer[z]).toFixed(1) + "sec");
         output.push("Extrude speeds:");
-        moveOutput.push("Move speeds:");
         for(i=0;i<layerSpeeds['extrude'][z].length;i++){
             if(typeof(layerSpeeds['extrude'][z][i])==='undefined'){continue;}
             speedIndex = i;
             if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
             output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds['extrude'][z][i])/60).toFixed(2)+"mm/s");
         }
-        output.push("Move speeds:");
-        for(i=0;i<layerSpeeds['move'][z].length;i++){
-            if(typeof(layerSpeeds['move'][z][i])==='undefined'){continue;}
-            speedIndex = i;
-            if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds['move'][z][i])/60).toFixed(2)+"mm/s");
+        if(typeof(layerSpeeds['move'][z]) !== 'undefined'){
+            output.push("Move speeds:");
+            for(i=0;i<layerSpeeds['move'][z].length;i++){
+                if(typeof(layerSpeeds['move'][z][i])==='undefined'){continue;}
+                speedIndex = i;
+                if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+                output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds['move'][z][i])/60).toFixed(2)+"mm/s");
+            }
         }
-        output.push("Retract speeds:");
-        for(i=0;i<layerSpeeds['retract'][z].length;i++){
-            if(typeof(layerSpeeds['retract'][z][i])==='undefined'){continue;}
-            speedIndex = i;
-            if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
-            output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
+        if(typeof(layerSpeeds['retract'][z]) !== 'undefined'){
+            output.push("Retract speeds:");
+            for(i=0;i<layerSpeeds['retract'][z].length;i++){
+                if(typeof(layerSpeeds['retract'][z][i])==='undefined'){continue;}
+                speedIndex = i;
+                if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+                output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
+            }
         }
 
-        $('#layerInfo').html((output.concat(moveOutput, retractOutput)).join('<br>'));
+        $('#layerInfo').html(output.join('<br>'));
 //        chooseAccordion('layerAccordionTab');
     };
 
