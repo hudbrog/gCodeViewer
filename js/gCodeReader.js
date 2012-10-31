@@ -14,7 +14,8 @@ GCODE.gCodeReader = (function(){
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
     var totalFilament=0;
-    var speeds = [];
+    var printTime=0;
+    var speeds = {};
     var speedsByLayer = {};
     var gCodeOptions = {
         sortLayers: false,
@@ -83,6 +84,7 @@ GCODE.gCodeReader = (function(){
             z_heights = [];
 
             lines = reader.target.result.split(/\n/);
+            reader.target.result = null;
 //            prepareGCode();
 
             worker.postMessage({
@@ -95,6 +97,8 @@ GCODE.gCodeReader = (function(){
                     }
                 }
             );
+            delete lines;
+
 
 
         },
@@ -112,15 +116,14 @@ GCODE.gCodeReader = (function(){
 
         },
         processLayerFromWorker: function(msg){
-            var cmds = msg.cmds;
-            var layerNum = msg.layerNum;
-            var zHeightObject = msg.zHeightObject;
-            var isEmpty = msg.isEmpty;
+//            var cmds = msg.cmds;
+//            var layerNum = msg.layerNum;
+//            var zHeightObject = msg.zHeightObject;
+//            var isEmpty = msg.isEmpty;
 //            console.log(zHeightObject);
-            model[layerNum] = cmds;
-            z_heights[zHeightObject.zValue] = zHeightObject.layer;
-//            GCODE.renderer.doRender(model, layerNum);
-
+            model[msg.layerNum] = msg.cmds;
+            z_heights[msg.zHeightObject.zValue] = msg.zHeightObject.layer;
+//            GCODE.renderer.doRender(model, msg.layerNum);
         },
         processAnalyzeModelDone: function(msg){
             min = msg.min;
@@ -130,6 +133,7 @@ GCODE.gCodeReader = (function(){
             filamentByLayer = msg.filamentByLayer;
             speeds = msg.speeds;
             speedsByLayer = msg.speedsByLayer;
+            printTime = msg.printTime;
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
@@ -144,7 +148,8 @@ GCODE.gCodeReader = (function(){
                 modelSize: modelSize,
                 totalFilament: totalFilament,
                 speeds: speeds,
-                speedsByLayer: speedsByLayer
+                speedsByLayer: speedsByLayer,
+                printTime: printTime
             };
         },
         getGCodeLines: function(layer, fromSegments, toSegments){

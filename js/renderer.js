@@ -241,11 +241,12 @@ GCODE.renderer = (function(){
             if(!cmds[i].y)y=prevY/zoomFactor;
             else y = -cmds[i].y;
             if(renderOptions["differentiateColors"]){
-                if(speedsByLayer[prevZ]){
-                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer[prevZ], function(obj) {return obj.speed === cmds[i].speed;});
-                } else {
-                    speedIndex = -1;
-                }
+//                if(speedsByLayer['extrude'][prevZ]){
+                    speedIndex = speeds['extrude'].indexOf(cmds[i].speed);
+//                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer['extrude'][prevZ], function(obj) {return obj.speed === cmds[i].speed;});
+//                } else {
+//                    speedIndex = -1;
+//                }
                 if(speedIndex === -1){
                     speedIndex = 0;
                 }else if(speedIndex > renderOptions["colorLine"].length -1){

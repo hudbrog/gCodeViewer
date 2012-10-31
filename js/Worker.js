@@ -4,9 +4,6 @@
  * Time: 12:18 PM
  */
 
-var GCODE = {}
-
-GCODE.worker = (function(){
     var gcode;
     var firstReport;
     var z_heights = {};
@@ -24,8 +21,8 @@ GCODE.worker = (function(){
     var printTime=0;
     var layerHeight=0;
     var layerCnt = 0;
-    var speeds = [];
-    var speedsByLayer = {};
+    var speeds = {extrude: [], retract: [], move: []};
+    var speedsByLayer = {extrude: {}, retract: {}, move: {}};
 
 
     var sendLayerToParent = function(layerNum, z, progress){
@@ -103,7 +100,7 @@ GCODE.worker = (function(){
             for(j=0;j<cmds.length;j++){
                 x_ok=false;
                 y_ok=false;
-                if(typeof(cmds[j].x) !== 'undefined'&&typeof(cmds[j].prevX) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude)
+                if(typeof(cmds[j].x) !== 'undefined'&&typeof(cmds[j].prevX) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude&&!isNaN(cmds[j].x))
                 {
                     max.x = parseFloat(max.x)>parseFloat(cmds[j].x)?parseFloat(max.x):parseFloat(cmds[j].x);
                     max.x = parseFloat(max.x)>parseFloat(cmds[j].prevX)?parseFloat(max.x):parseFloat(cmds[j].prevX);
@@ -112,7 +109,7 @@ GCODE.worker = (function(){
                     x_ok=true;
                 }
 
-                if(typeof(cmds[j].y) !== 'undefined'&&typeof(cmds[j].prevY) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude){
+                if(typeof(cmds[j].y) !== 'undefined'&&typeof(cmds[j].prevY) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude&&!isNaN(cmds[j].y)){
                     max.y = parseFloat(max.y)>parseFloat(cmds[j].y)?parseFloat(max.y):parseFloat(cmds[j].y);
                     max.y = parseFloat(max.y)>parseFloat(cmds[j].prevY)?parseFloat(max.y):parseFloat(cmds[j].prevY);
                     min.y = parseFloat(min.y)<parseFloat(cmds[j].y)?parseFloat(min.y):parseFloat(cmds[j].y);
@@ -120,7 +117,7 @@ GCODE.worker = (function(){
                     y_ok=true;
                 }
 
-                if(typeof(cmds[j].prevZ) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude){
+                if(typeof(cmds[j].prevZ) !== 'undefined'&&typeof(cmds[j].extrude) !== 'undefined'&&cmds[j].extrude&&!isNaN(cmds[j].prevZ)){
                     max.z = parseFloat(max.z)>parseFloat(cmds[j].prevZ)?parseFloat(max.z):parseFloat(cmds[j].prevZ);
                     min.z = parseFloat(min.z)<parseFloat(cmds[j].prevZ)?parseFloat(min.z):parseFloat(cmds[j].prevZ);
                 }
@@ -141,25 +138,29 @@ GCODE.worker = (function(){
                     printTime += Math.abs(parseFloat(cmds[j].extrusion)/(cmds[j].speed/60));
                 }
 
-                speedIndex = speeds.indexOf(cmds[j].speed);
+                if(cmds[j].extrude&&cmds[j].retract===0){
+                    type = 'extrude';
+                }else if(cmds[j].retract!==0){
+                    type = 'retract';
+                }else if(!cmds[j].extrude&&cmds[j].retract===0){
+                    type = 'move';
+    //                    if(cmds[j].prevZ == '17.1'){
+    //                        self.postMessage({cmd: 'Got speed ' + cmds[j].speed + 'with line ' + cmds[j].gcodeLine});
+    //                    }
+                }else {
+                    self.postMessage({cmd: 'unknown type of move'});
+                    type = 'unknown';
+                }
+                speedIndex = speeds[type].indexOf(cmds[j].speed);
                 if (speedIndex === -1) {
-                    speeds.push(cmds[j].speed);
-                    speedIndex = speeds.indexOf(cmds[j].speed);
+                    speeds[type].push(cmds[j].speed);
+                    speedIndex = speeds[type].indexOf(cmds[j].speed);
                 }
-                if(typeof(speedsByLayer[cmds[j].prevZ]) === 'undefined'){
-                    speedsByLayer[cmds[j].prevZ] = [];
+                if(typeof(speedsByLayer[type][cmds[j].prevZ]) === 'undefined'){
+                    speedsByLayer[type][cmds[j].prevZ] = [];
                 }
-                if(speedsByLayer[cmds[j].prevZ].indexOf(cmds[j].speed) === -1){
-                    if(cmds[j].extrude&&cmds[j].retract===0){
-                        type = 'extrude';
-                    }else if(cmds[j].retract!==0){
-                        type = 'retract';
-                    }else if(!cmds[j].extrude&&cmds[j].retract===0){
-                        type = 'move';
-                    }else {
-                        type = 'unknown';
-                    }
-                    speedsByLayer[cmds[j].prevZ][speedIndex] = {speed: cmds[j].speed, type: type};
+                if(speedsByLayer[type][cmds[j].prevZ].indexOf(cmds[j].speed) === -1){
+                    speedsByLayer[type][cmds[j].prevZ][speedIndex] = cmds[j].speed;
                 }
 
             }
@@ -171,7 +172,6 @@ GCODE.worker = (function(){
         modelSize.x = Math.abs(max.x - min.x);
         modelSize.y = Math.abs(max.y - min.y);
         modelSize.z = Math.abs(max.z - min.z);
-        self.postMessage('max: ' + max.z + "min = " + min.z);
         layerHeight = (max.z-min.z)/(layerCnt-1);
 
         sendAnalyzeDone();
@@ -191,6 +191,7 @@ GCODE.worker = (function(){
             x=undefined;
             y=undefined;
             z=undefined;
+            retract = 0;
 
 
             extrude=false;
@@ -205,9 +206,15 @@ GCODE.worker = (function(){
                     switch(argChar = args[j].charAt(0).toLowerCase()){
                         case 'x':
                             x=args[j].slice(1);
+//                            if(x === prevX){
+//                                x=undefined;
+//                            }
                             break;
                         case 'y':
                             y=args[j].slice(1);
+//                            if(y===prevY){
+//                                y=undefined;
+//                            }
                             break;
                         case 'z':
                             z=args[j].slice(1);
@@ -226,7 +233,7 @@ GCODE.worker = (function(){
                             prevZ = z;
                             break;
                         case 'e'||'a'||'b'||'c':
-                            numSlice = args[j].slice(1);
+                            numSlice = parseFloat(args[j].slice(1)).toFixed(3);
                             if(!extrudeRelative){
                                 // absolute extrusion positioning
                                 prev_extrude["abs"] = parseFloat(numSlice)-parseFloat(prev_extrude[argChar]);
@@ -261,7 +268,8 @@ GCODE.worker = (function(){
                     }
                 }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF),gcodeLine: Number(i)};
+                //{x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
                 if(typeof(x) !== 'undefined') prevX = x;
                 if(typeof(y) !== 'undefined') prevY = y;
             } else if(gcode[i].match(/^(?:M82)/i)){
@@ -299,14 +307,14 @@ GCODE.worker = (function(){
                     }
                 }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: true, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF,gcodeLine: i};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: parseFloat(x), y: parseFloat(y), z: parseFloat(z), extrude: extrude, retract: parseFloat(retract), noMove: true, extrusion: (extrude||retract)?parseFloat(prev_extrude["abs"]):0, prevX: parseFloat(prevX), prevY: parseFloat(prevY), prevZ: parseFloat(prevZ), speed: parseFloat(lastF),gcodeLine: parseFloat(i)};
             }else if(gcode[i].match(/^(?:G28)/i)){
                 x=0, y=0,z=0,prevZ=0, extrude=false;
                 if(typeof(prevX) === 'undefined'){prevX=0;}
                 if(typeof(prevY) === 'undefined'){prevY=0;}
 
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove:false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
             }
             if(typeof(sendLayer) !== "undefined"){
                 sendLayerToParent(sendLayer, sendLayerZ, i/gcode.length*100);
@@ -319,13 +327,13 @@ GCODE.worker = (function(){
     };
 
 
-    return {
-        parseGCode: function(message){
+    var parseGCode = function(message){
             gcode = message.gcode;
             firstReport = message.options.firstReport;
 
 
             doParse();
+            gcode = [];
             self.postMessage({
                 "cmd": "returnModel",
                 "msg": {
@@ -333,31 +341,34 @@ GCODE.worker = (function(){
                 }
             });
 
-        },
-        runAnalyze: function(message){
-            analyzeModel();
-        },
-        setOption: function(options){
+    };
+
+    var runAnalyze = function(message){
+        analyzeModel();
+        model = [];
+        z_heights = [];
+        filamentByLayer = [];
+        speeds = [];
+        speedsByLayer = [];
+    };
+    var setOption = function(options){
             for(var opt in options){
                 gCodeOptions[opt] = options[opt];
             }
-        }
-    }
-}());
-
+    };
 
 onmessage = function (e){
     var data = e.data;
-
+    // for some reason firefox doesn't garbage collect when something inside closures is deleted, so we delete and recreate whole object eaech time
     switch (data.cmd) {
         case 'parseGCode':
-            GCODE.worker.parseGCode(data.msg);
+            parseGCode(data.msg);
             break;
         case 'setOption':
-            GCODE.worker.setOption(data.msg);
+            setOption(data.msg);
             break;
         case 'analyzeModel':
-            GCODE.worker.runAnalyze(data.msg);
+            runAnalyze(data.msg);
             break;
 
         default:

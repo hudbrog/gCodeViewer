@@ -3,13 +3,18 @@
 <head>
     <title></title>
     <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="lib/codemirror.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
     <script type="text/javascript" src="lib/jquery-1.8.2.js"></script>
     <script type="text/javascript" src="lib/jquery-ui-1.9.0.custom.js"></script>
 
+    <script type="text/javascript" src="lib/codemirror.js"></script>
+    <script type="text/javascript" src="lib/mode_gcode/gcode_mode.js"></script>
     <script type="text/javascript" src="lib/three.js"></script>
-    <script type="text/javascript" src="lib/bootstrap.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/bootstrap-transition.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/bootstrap-tab.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/bootstrap-collapse.js"></script>
     <script type="text/javascript" src="lib/modernizr.custom.09684.js"></script>
     <script type="text/javascript" src="lib/TrackballControls.js"></script>
     <script type="text/javascript" src="js/ui.js"></script>
@@ -131,6 +136,7 @@
             <ul id="myTab" class="nav nav-tabs">
                 <li class="active"><a href="#tab2d" data-toggle="tab">2D</a></li>
                 <li class=""><a href="#tab3d" data-toggle="tab">3D</a></li>
+                <li class=""><a href="#tabGCode" data-toggle="tab">GCode</a></li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="tab2d">
@@ -140,6 +146,9 @@
                 </div>
                 <div class="tab-pane" id="tab3d">
                     <div id="3d_container"></div>
+                </div>
+                <div class="tab-pane" id="tabGCode">
+                    <div id="gCodeContainer"></div>
                 </div>
             </div>
         </div>

@@ -3,6 +3,7 @@
  * Date: 10/21/12
  * Time: 7:45 AM
  */
+
 var GCODE = {};
 
 GCODE.ui = (function(){
@@ -11,6 +12,7 @@ GCODE.ui = (function(){
     var sliderVer;
     var sliderHor;
     var gCodeLines = {first: 0, last: 0};
+    var showGCode = false;
 
     var setProgress = function(id, progress){
         $('#'+id).width(parseInt(progress)+'%');
@@ -33,14 +35,16 @@ GCODE.ui = (function(){
         }
     }
 
+
     var printLayerInfo = function(layerNum){
         var z = GCODE.renderer.getZ(layerNum);
         var segments = GCODE.renderer.getLayerNumSegments(layerNum);
         var filament = GCODE.gCodeReader.getLayerFilament(z);
-        var layerSpeeds = GCODE.gCodeReader.getLayerSpeeds(z);
+        var layerSpeeds = GCODE.gCodeReader.getModelInfo().speedsByLayer;
         var renderOptions = GCODE.renderer.getOptions();
         var colors = renderOptions["colorLine"];
         var speedIndex = 0;
+        var keys, type;
         var showMove=false;
         var i = 0;
         var output = [], retractOutput = [], moveOutput = [];
@@ -50,27 +54,29 @@ GCODE.ui = (function(){
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
         output.push("Extrude speeds:");
         moveOutput.push("Move speeds:");
-        retractOutput.push("Retract speeds:");
-        for(i=0;i<layerSpeeds.length;i++){
-            if(typeof(layerSpeeds[i])==='undefined'){
-                continue;
-            }
+        for(i=0;i<layerSpeeds['extrude'][z].length;i++){
+            if(typeof(layerSpeeds['extrude'][z][i])==='undefined'){continue;}
             speedIndex = i;
-            if(speedIndex > colors.length -1){
-                speedIndex = speedIndex % (colors.length-1);
-            }
-            if(layerSpeeds[i]["type"]==='move'){
-                moveOutput.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds[i]["speed"])/60).toFixed(2)+"mm/s");
-            }else if(layerSpeeds[i]["type"]==='retract'){
-                retractOutput.push("<span style='color: " + renderOptions['colorRetract'] +"'>*</span> = " +(parseFloat(layerSpeeds[i]["speed"])/60).toFixed(2)+"mm/s");
-            }else if(layerSpeeds[i]["type"]==='extrude'){
-                output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[i]["speed"])/60).toFixed(2)+"mm/s");
-            }else {
-                output.push("Found a speed info of unknown type! This is a bug!");
-            }
+            if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds['extrude'][z][i])/60).toFixed(2)+"mm/s");
         }
+        output.push("Move speeds:");
+        for(i=0;i<layerSpeeds['move'][z].length;i++){
+            if(typeof(layerSpeeds['move'][z][i])==='undefined'){continue;}
+            speedIndex = i;
+            if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds['move'][z][i])/60).toFixed(2)+"mm/s");
+        }
+        output.push("Retract speeds:");
+        for(i=0;i<layerSpeeds['retract'][z].length;i++){
+            if(typeof(layerSpeeds['retract'][z][i])==='undefined'){continue;}
+            speedIndex = i;
+            if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+            output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
+        }
+
         $('#layerInfo').html((output.concat(moveOutput, retractOutput)).join('<br>'));
-        chooseAccordion('layerAccordionTab');
+//        chooseAccordion('layerAccordionTab');
     };
 
     var handleFileSelect = function(evt) {
@@ -94,8 +100,14 @@ GCODE.ui = (function(){
             reader.onload = function(theFile){
                 chooseAccordion('progressAccordionTab');
                 setProgress('loadProgress', 0);
-                myCodeMirror.setValue(theFile.target.result);
+//                myCodeMirror.setValue(theFile.target.result);
                 GCODE.gCodeReader.loadFile(theFile);
+                if(showGCode){
+                    myCodeMirror.setValue(theFile.target.result);
+                }else{
+                    myCodeMirror.setValue("GCode view is disabled. You can enable it in 'GCode analyzer options' section.")
+                }
+
             };
             reader.readAsText(f);
         }
@@ -167,7 +179,7 @@ GCODE.ui = (function(){
                 initSliders();
                 resultSet.push("Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm<br>');
                 resultSet.push("Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm<br>");
-                resultSet.push("Estimated print time: " + parseInt(parseFloat(data.msg.printTime)/60) + ":" + parseInt(parseFloat(data.msg.printTime)%60).toPrecision(2) + "<br>");
+                resultSet.push("Estimated print time: " + parseInt(parseFloat(data.msg.printTime)/60/60) + ":" + parseInt((parseFloat(data.msg.printTime)/60)%60) + ":" + parseInt(parseFloat(data.msg.printTime)%60) + "<br>");
                 resultSet.push("Estimated layer height: " + data.msg.layerHeight.toFixed(2) + "mm<br>");
                 resultSet.push("Layer count: " + data.msg.layerCnt.toFixed(0) + "printed, " + data.msg.layerTotal.toFixed(0) + 'visited<br>');
                 document.getElementById('list').innerHTML =  resultSet.join('');
@@ -183,7 +195,7 @@ GCODE.ui = (function(){
                 setProgress('analyzeProgress',data.msg.progress);
                 break;
             default:
-                console.log("default msg received" + data);
+                console.log("default msg received" + data.cmd);
         }
     };
 
@@ -294,8 +306,8 @@ GCODE.ui = (function(){
             if(document.getElementById('purgeEmptyLayersCheckbox').checked)GCODE.gCodeReader.setOption({purgeEmptyLayers: true});
             else GCODE.gCodeReader.setOption({purgeEmptyLayers: false});
 
-            if(document.getElementById('analyzeModelCheckbox').checked)GCODE.gCodeReader.setOption({analyzeModel: true});
-            else GCODE.gCodeReader.setOption({analyzeModel: false});
+            if(document.getElementById('showGCodeCheckbox').checked)showGCode = true;
+            else showGCode = false;
 
 
 //            if(document.getElementById('sortLayersCheckbox').checked) worker.postMessage({"cmd":"setOption", "msg":{sortLayers: true}});
@@ -304,8 +316,8 @@ GCODE.ui = (function(){
 //            if(document.getElementById('purgeEmptyLayersCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: true}});
 //            else worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: false}});
 
-            if(document.getElementById('analyzeModelCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: true}});
-            else worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: false}});
+//            if(document.getElementById('analyzeModelCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: true}});
+//            else worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: false}});
 
 
             if(document.getElementById('moveModelCheckbox').checked)GCODE.renderer.setOption({moveModel: true});
