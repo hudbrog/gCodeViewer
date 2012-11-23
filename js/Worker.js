@@ -354,9 +354,21 @@
         analyzeModel();
         model = [];
         z_heights = [];
-        filamentByLayer = [];
-        speeds = [];
-        speedsByLayer = [];
+        gcode = undefined;
+        firstReport = undefined;
+        z_heights = {};
+        model = [];
+        max = {x: undefined, y: undefined, z: undefined};
+        min = {x: undefined, y: undefined, z: undefined};
+        modelSize = {x: undefined, y: undefined, z: undefined};
+        filamentByLayer = {};
+        totalFilament=0;
+        printTime=0;
+        printTimeByLayer = {};
+        layerHeight=0;
+        layerCnt = 0;
+        speeds = {extrude: [], retract: [], move: []};
+        speedsByLayer = {extrude: {}, retract: {}, move: {}};
     };
     var setOption = function(options){
             for(var opt in options){

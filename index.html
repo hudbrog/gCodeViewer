@@ -1,7 +1,8 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
-    <title></title>
+    <title>gCodeViewer</title>
+    <meta name="description" content="Visual GCode viewer and analyzer in your browser. No need to upload you GCode anywhere, everything is done locally.">
     <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="css/bootstrap.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="lib/codemirror.css" media="screen" />
@@ -135,6 +136,7 @@
                 <li class="active"><a href="#tab2d" data-toggle="tab">2D</a></li>
                 <li class=""><a href="#tab3d" data-toggle="tab">3D</a></li>
                 <li class=""><a href="#tabGCode" data-toggle="tab">GCode</a></li>
+                <li class=""><a href="#tabAbout" data-toggle="tab">About</a></li>
             </ul>
             <div class="tab-content">
                 <div class="tab-pane active" id="tab2d">
@@ -147,6 +149,34 @@
                 </div>
                 <div class="tab-pane" id="tabGCode">
                     <div id="gCodeContainer"></div>
+                </div>
+                <div class="tab-pane" id="tabAbout">
+                    <div class="aboutpage">
+                        <h2><center>gCodeViewer</center></h2>
+                        <b>gCodeViewer</b> is a visual GCode analyzer in your own browser! It works on any OS in almost any modern browser (chrome, ff, safari 6, opera, ie10 should work too). All you need to do - is drag your *.gcode file to the designated zone.<br><br>
+                        Current features include:<br>
+                        <ul>
+                        <li>Visualize GCode in 2D, layer by layer</li>
+                            <ul>
+                        <li>Show retracts and restarts</li>
+                        <li>Show print/move/retract speeds</li>
+                        <li>Display only part of layer, animate sequence of layer printing</li>
+                            </ul>
+                        <li>Analyze GCode</li>
+                            <ul>
+                        <li>Print time, amount of plastic used, layer height, etc. for whole file and for single layer</li>
+                        <li>Reference visualized part to GCode file (i.e. select a certain part of 2d visualization, switch to GCode view - it will highlight list of lines responsible for visualized piece)</li>
+                            </ul>
+                        <li>Multiplatform, available online (but works offline too), works locally (doesn't upload you g-code anywhere or download anything but application itself)</li>
+                        <li>3D visualization (I don't know what for, it's dull and useless.. need to rewrite it to be like in repetier host)</li>
+                        <li>And yeah, it's slow, memory hungry and only supports modern browsers</li>
+                        <li>Totally open source so you can use it as you like</li>
+                        </ul><br><br>
+                        All sources are available at <a href="https://github.com/hudbrog/gCodeViewer">https://github.com/hudbrog/gCodeViewer</a><br>
+                        If you find any bugs or have feature requests - don't hesitate to post them to <a href="https://github.com/hudbrog/gCodeViewer/issues">https://github.com/hudbrog/gCodeViewer/issues</a><br>
+                        And I would appreciate if you like it on Thingiverse page: <a href="http://www.thingiverse.com/thing:35248">http://www.thingiverse.com/thing:35248</a><br>
+                    </div>
+
                 </div>
             </div>
         </div>

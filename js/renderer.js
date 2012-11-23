@@ -27,8 +27,10 @@ GCODE.renderer = (function(){
         showMoves: true,
         showRetracts: true,
         colorGrid: "#bbbbbb",
-        colorLine: ["#000000", "#FA8805",  "#FA0505", "#5E08C7", "#ffff00", "#ff00ff","#00ffff"],
-        colorMove: "#00ff00",
+//        colorLine: ["#000000", "#aabb88",  "#ffe7a0", "#6e7700", "#331a00", "#44ba97", "#08262f", "#db0e00", "#ff9977"],
+        colorLine: ["#000000", "#45c7ba",  "#a9533a", "#ff44cc", "#dd1177", "#eeee22", "#ffbb55", "#ff5511", "#777788"],
+
+    colorMove: "#00ff00",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
         sizeRetractSpot: 2,

@@ -140,6 +140,10 @@ html {
     overflow: visible;
 }
 
+.aboutpage {
+    margin: 10px;
+}
+
 #accordion_top .ui-accordion-content{
     padding: 5px;
 }

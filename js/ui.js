@@ -104,6 +104,7 @@ GCODE.ui = (function(){
             reader.onload = function(theFile){
                 chooseAccordion('progressAccordionTab');
                 setProgress('loadProgress', 0);
+                setProgress('analyzeProgress', 0);
 //                myCodeMirror.setValue(theFile.target.result);
                 GCODE.gCodeReader.loadFile(theFile);
                 if(showGCode){
@@ -130,6 +131,16 @@ GCODE.ui = (function(){
         sliderVer =  $( "#slider-vertical" );
         sliderHor = $( "#slider-horizontal" );
 
+        var onLayerChange = function(val){
+            var progress = GCODE.renderer.getLayerNumSegments(val)-1;
+            GCODE.renderer.render(val,0, progress);
+            sliderHor.slider({max: progress, values: [0,progress]});
+            setLinesColor(false); //clear current selection
+            gCodeLines = GCODE.gCodeReader.getGCodeLines(val, sliderHor.slider("values",0), sliderHor.slider("values",1));
+            setLinesColor(true); // highlight lines
+            printLayerInfo(val);
+        };
+
         sliderVer.slider({
             orientation: "vertical",
             range: "min",
@@ -137,15 +148,12 @@ GCODE.ui = (function(){
             max: GCODE.renderer.getModelNumLayers()-1,
             value: 0,
             slide: function( event, ui ) {
-                var progress = GCODE.renderer.getLayerNumSegments(ui.value)-1;
-                GCODE.renderer.render(ui.value,0, progress);
-                sliderHor.slider({max: progress, values: [0,progress]});
-                setLinesColor(false); //clear current selection
-                gCodeLines = GCODE.gCodeReader.getGCodeLines(ui.value, sliderHor.slider("values",0), sliderHor.slider("values",1));
-                setLinesColor(true); // highlight lines
-                printLayerInfo(ui.value);
+                onLayerChange(ui.value);
             }
         });
+
+        //this stops slider reacting to arrow keys, since we do it below manually
+        $( "#slider-vertical .ui-slider-handle" ).unbind('keydown');
 
         sliderHor.slider({
             orientation: "horizontal",
@@ -160,6 +168,21 @@ GCODE.ui = (function(){
                 GCODE.renderer.render(sliderVer.slider("value"), ui.values[0], ui.values[1]);
             }
         });
+
+        window.onkeydown = function (event){
+            if(event.keyCode === 38 || event.keyCode === 33){
+                if(sliderVer.slider('value') < sliderVer.slider('option', 'max')){
+                    sliderVer.slider('value', sliderVer.slider('value')+1);
+                    onLayerChange(sliderVer.slider('value'));
+                }
+            }else if(event.keyCode === 40 || event.keyCode === 34){
+                if(sliderVer.slider('value') > 0){
+                    sliderVer.slider('value', sliderVer.slider('value')-1);
+                    onLayerChange(sliderVer.slider('value'));
+                }
+            }
+            event.stopPropagation()
+        }
     };
 
     var processMessage = function(e){
