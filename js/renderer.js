@@ -194,6 +194,8 @@ GCODE.renderer = (function(){
         progressStore = {from: fromProgress, to: toProgress};
         if(!model||!model[layerNum])return;
 
+        console.log(progressStore);
+
         var cmds = model[layerNum];
         var x, y;
 
@@ -212,6 +214,9 @@ GCODE.renderer = (function(){
                 prevX = 0;
                 prevY = 0;
             }
+        }else if(typeof(cmds[0].prevX) !== 'undefined' && typeof(cmds[0].prevY) !== 'undefined'){
+            prevX = cmds[0].prevX*zoomFactor;
+            prevY = -cmds[0].prevY*zoomFactor;
         }else{
             if(model[layerNum-1]){
                 prevX=undefined;
@@ -236,11 +241,12 @@ GCODE.renderer = (function(){
 
         drawGrid();
 //        ctx.strokeStyle = renderOptions["colorLine"];
-        for(i=fromProgress;i<toProgress;i++){
+        for(i=fromProgress;i<=toProgress;i++){
 //                console.log(cmds[i]);
-            if(!cmds[i].x)x=prevX/zoomFactor;
+            if(typeof(cmds[i]) === 'undefined')continue;
+            if(typeof(cmds[i].x)==='undefined'||isNaN(cmds[i].x))x=prevX/zoomFactor;
             else x = cmds[i].x;
-            if(!cmds[i].y)y=prevY/zoomFactor;
+            if(typeof(cmds[i].y) === 'undefined'||isNaN(cmds[i].y))y=prevY/zoomFactor;
             else y = -cmds[i].y;
             if(renderOptions["differentiateColors"]){
 //                if(speedsByLayer['extrude'][prevZ]){
@@ -264,6 +270,7 @@ GCODE.renderer = (function(){
 //                ctx.stroke();
                 if(cmds[i].retract == -1){
                     if(renderOptions["showRetracts"]){
+                        console.log("11");
                         ctx.strokeStyle = renderOptions["colorRetract"];
                         ctx.fillStyle = renderOptions["colorRetract"];
                         ctx.beginPath();

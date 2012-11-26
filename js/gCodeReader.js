@@ -38,8 +38,6 @@ GCODE.gCodeReader = (function(){
     var sortLayers = function(){
         var sortedZ = [];
         var tmpModel = [];
-        var i;
-
         for(var layer in z_heights){
             sortedZ[z_heights[layer]] = layer;
         }
@@ -47,6 +45,7 @@ GCODE.gCodeReader = (function(){
             return a-b;
         });
         for(i=0;i<sortedZ.length;i++){
+        if(typeof(z_heights[sortedZ[i]]) === 'undefined')continue;
             tmpModel[i] = model[z_heights[sortedZ[i]]];
         }
         model = tmpModel;
@@ -61,7 +60,7 @@ GCODE.gCodeReader = (function(){
         }
         for(var i=0;i<model.length;i++){
             purge=true;
-            if(!model[i])purge=true;
+            if(typeof(model[i])==='undefined')purge=true;
             else {
                 for(var j=0;j<model[i].length;j++){
                     if(model[i][j].extrude)purge=false;
@@ -108,8 +107,7 @@ GCODE.gCodeReader = (function(){
                 gCodeOptions[opt] = options[opt];
             }
         },
-        passDataToRenderer: function(mdl){
-//            model = mdl;
+        passDataToRenderer: function(){
             if(gCodeOptions["sortLayers"])sortLayers();
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
             GCODE.renderer.doRender(model, 0);

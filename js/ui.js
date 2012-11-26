@@ -21,6 +21,7 @@ GCODE.ui = (function(){
     };
 
     var chooseAccordion = function(id){
+//        debugger;
         $('#'+id).collapse("show");
     };
 
@@ -75,7 +76,7 @@ GCODE.ui = (function(){
                 if(typeof(layerSpeeds['retract'][z][i])==='undefined'){continue;}
                 speedIndex = i;
                 if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
-                output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
+                output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> <span style='color: " + renderOptions['colorRestart'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
             }
         }
 

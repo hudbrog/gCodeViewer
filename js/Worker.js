@@ -191,7 +191,9 @@
         var sendLayerZ = 0;
     //            console.time("parseGCode timer");
         var reg = new RegExp(/^(?:G0|G1)\s/i);
-        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z, f, prevZ, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;;
+        var comment = new RegExp()
+        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z, f, prevZ, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;
+        var dcExtrude=false;
 
         for(var i=0;i<gcode.length;i++){
     //            for(var len = gcode.length- 1, i=0;i!=len;i++){
@@ -202,6 +204,8 @@
 
 
             extrude=false;
+            gcode[i] = gcode[i].split(/[\(;]/)[0];
+
     //                prevRetract=0;
     //                retract=0;
     //                if(gcode[i].match(/^(?:G0|G1)\s+/i)){
@@ -225,6 +229,7 @@
                             break;
                         case 'z':
                             z=args[j].slice(1);
+                            if(z === prevZ)continue;
                             sendLayer = layer;
                             if(typeof(prevZ)!=="undefined"){sendLayerZ=prevZ;}
                             else {sendLayerZ = z;}
@@ -274,8 +279,12 @@
                             break;
                     }
                 }
+                if(dcExtrude){
+                    extrude = true;
+                    prev_extrude["abs"] = Math.sqrt((prevX-x)*(prevX-x)+(prevY-y)*(prevY-y));
+                }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF),gcodeLine: Number(i)};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i)};
                 //{x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
                 if(typeof(x) !== 'undefined') prevX = x;
                 if(typeof(y) !== 'undefined') prevY = y;
@@ -287,6 +296,10 @@
                 extrudeRelative=false;
             }else if(gcode[i].match(/^(?:M83)/i)){
                 extrudeRelative=true;
+            }else if(gcode[i].match(/^(?:M101)/i)){
+                dcExtrude=true;
+            }else if(gcode[i].match(/^(?:M103)/i)){
+                dcExtrude=false;
             }else if(gcode[i].match(/^(?:G92)/i)){
                 var args = gcode[i].split(/\s/);
                 for(j=0;j<args.length;j++){
