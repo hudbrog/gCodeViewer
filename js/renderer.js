@@ -242,8 +242,13 @@ GCODE.renderer = (function(){
         drawGrid();
 //        ctx.strokeStyle = renderOptions["colorLine"];
         for(i=fromProgress;i<=toProgress;i++){
-//                console.log(cmds[i]);
             if(typeof(cmds[i]) === 'undefined')continue;
+
+            if(typeof(cmds[i].prevX) !== 'undefined' && typeof(cmds[i].prevY) !== 'undefined'){
+                prevX = cmds[i].prevX*zoomFactor;
+                prevY = -cmds[i].prevY*zoomFactor;
+            }
+//                console.log(cmds[i]);
             if(typeof(cmds[i].x)==='undefined'||isNaN(cmds[i].x))x=prevX/zoomFactor;
             else x = cmds[i].x;
             if(typeof(cmds[i].y) === 'undefined'||isNaN(cmds[i].y))y=prevY/zoomFactor;
