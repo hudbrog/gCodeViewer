@@ -32,7 +32,7 @@ GCODE.gCodeReader = (function(){
             if(lines[i].match(/^(G0|G1|G90|G91|G92|M82|M83|G28)/i))gcode.push(lines[i]);
         }
         lines = [];
-        console.log("GCode prepared");
+//        console.log("GCode prepared");
     };
 
     var sortLayers = function(){
@@ -79,7 +79,7 @@ GCODE.gCodeReader = (function(){
     return {
 
         loadFile: function(reader){
-            console.log("loadFile");
+//            console.log("loadFile");
             model = [];
             z_heights = [];
 
@@ -123,6 +123,12 @@ GCODE.gCodeReader = (function(){
             model[msg.layerNum] = msg.cmds;
             z_heights[msg.zHeightObject.zValue] = msg.zHeightObject.layer;
 //            GCODE.renderer.doRender(model, msg.layerNum);
+        },
+        processMultiLayerFromWorker: function(msg){
+            for(var i=0;i<msg.layerNum.length;i++){
+                model[msg.layerNum[i]] = msg.model[msg.layerNum[i]];
+                z_heights[msg.zHeightObject.zValue[i]] = msg.layerNum[i];
+            }
         },
         processAnalyzeModelDone: function(msg){
             min = msg.min;

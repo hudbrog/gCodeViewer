@@ -194,7 +194,6 @@ GCODE.renderer = (function(){
         progressStore = {from: fromProgress, to: toProgress};
         if(!model||!model[layerNum])return;
 
-        console.log(progressStore);
 
         var cmds = model[layerNum];
         var x, y;
@@ -275,7 +274,7 @@ GCODE.renderer = (function(){
 //                ctx.stroke();
                 if(cmds[i].retract == -1){
                     if(renderOptions["showRetracts"]){
-                        console.log("11");
+
                         ctx.strokeStyle = renderOptions["colorRetract"];
                         ctx.fillStyle = renderOptions["colorRetract"];
                         ctx.beginPath();

@@ -26,6 +26,7 @@
     var speedsByLayer = {extrude: {}, retract: {}, move: {}};
 
 
+
     var sendLayerToParent = function(layerNum, z, progress){
         self.postMessage({
             "cmd": "returnLayer",
@@ -38,6 +39,28 @@
             }
         });
     };
+
+    var sendMultiLayerToParent = function(layerNum, z, progress){
+        var tmpModel = [];
+        var tmpZHeight = {};
+
+        for(var i=0;i<layerNum.length;i++){
+            tmpModel[layerNum[i]] = model[layerNum[i]];
+            tmpZHeight[layerNum[i]] = z_heights[z[i]];
+        }
+
+        self.postMessage({
+            "cmd": "returnMultiLayer",
+            "msg": {
+                model: tmpModel,
+                layerNum: layerNum,
+                zHeightObject: {zValue: z, layer: tmpZHeight},
+                isEmpty: false,
+                progress: progress
+            }
+        });
+    };
+
 
     var sendSizeProgress = function(progress){
         self.postMessage({
@@ -189,6 +212,9 @@
         model=[];
         var sendLayer = false;
         var sendLayerZ = 0;
+        var sendMultiLayer = [];
+        var sendMultiLayerZ = [];
+        var lastSend = 0;
     //            console.time("parseGCode timer");
         var reg = new RegExp(/^(?:G0|G1)\s/i);
         var comment = new RegExp()
@@ -337,8 +363,19 @@
                 if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove:false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
             }
             if(typeof(sendLayer) !== "undefined"){
-                sendLayerToParent(sendLayer, sendLayerZ, i/gcode.length*100);
+//                sendLayerToParent(sendLayer, sendLayerZ, i/gcode.length*100);
+//                sendLayer = undefined;
+                sendMultiLayer[sendMultiLayer.length] = sendLayer;
+                sendMultiLayerZ[sendMultiLayerZ.length] = sendLayerZ;
+
+                if(i-lastSend > gcode.length*0.02){
+                    lastSend = i;
+                    sendMultiLayerToParent(sendMultiLayer, sendMultiLayerZ, i/gcode.length*100);
+                    sendMultiLayer = [];
+                    sendMultiLayerZ = [];
+                }
                 sendLayer = undefined;
+                sendLayerZ = undefined;
             }
         }
 //            if(gCodeOptions["sortLayers"])sortLayers();

@@ -85,7 +85,7 @@ GCODE.ui = (function(){
     };
 
     var handleFileSelect = function(evt) {
-        console.log("handleFileSelect");
+//        console.log("handleFileSelect");
         evt.stopPropagation();
         evt.preventDefault();
 
@@ -217,7 +217,10 @@ GCODE.ui = (function(){
             case 'returnLayer':
                 GCODE.gCodeReader.processLayerFromWorker(data.msg);
                 setProgress('loadProgress',data.msg.progress);
-
+                break;
+            case 'returnMultiLayer':
+                GCODE.gCodeReader.processMultiLayerFromWorker(data.msg);
+                setProgress('loadProgress',data.msg.progress);
                 break;
             case "analyzeProgress":
                 setProgress('analyzeProgress',data.msg.progress);
@@ -310,7 +313,7 @@ GCODE.ui = (function(){
                 gutters: ['CodeMirror-linenumbers']
             });
             myCodeMirror.setSize("680","640");
-            console.log(myCodeMirror);
+//            console.log(myCodeMirror);
 
 
         },
