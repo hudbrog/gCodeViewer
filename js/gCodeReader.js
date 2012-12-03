@@ -38,17 +38,25 @@ GCODE.gCodeReader = (function(){
     var sortLayers = function(){
         var sortedZ = [];
         var tmpModel = [];
+//        var cnt = 0;
+//        console.log(z_heights);
         for(var layer in z_heights){
             sortedZ[z_heights[layer]] = layer;
+//            cnt++;
         }
+//        console.log("cnt is " + cnt);
         sortedZ.sort(function(a,b){
             return a-b;
         });
-        for(i=0;i<sortedZ.length;i++){
-        if(typeof(z_heights[sortedZ[i]]) === 'undefined')continue;
+//        console.log(sortedZ);
+//        console.log(model.length);
+        for(var i=0;i<sortedZ.length;i++){
+//            console.log("i is " + i +" and sortedZ[i] is " + sortedZ[i] + "and z_heights[] is " + z_heights[sortedZ[i]] );
+            if(typeof(z_heights[sortedZ[i]]) === 'undefined')continue;
             tmpModel[i] = model[z_heights[sortedZ[i]]];
         }
         model = tmpModel;
+//        console.log(model.length);
         delete tmpModel;
     };
 
@@ -108,8 +116,11 @@ GCODE.gCodeReader = (function(){
             }
         },
         passDataToRenderer: function(){
+//                        console.log(model);
             if(gCodeOptions["sortLayers"])sortLayers();
+//            console.log(model);
             if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
+//            console.log(model);
             GCODE.renderer.doRender(model, 0);
             GCODE.renderer3d.setModel(model);
 
@@ -129,6 +140,7 @@ GCODE.gCodeReader = (function(){
                 model[msg.layerNum[i]] = msg.model[msg.layerNum[i]];
                 z_heights[msg.zHeightObject.zValue[i]] = msg.layerNum[i];
             }
+//            console.log(model);
         },
         processAnalyzeModelDone: function(msg){
             min = msg.min;

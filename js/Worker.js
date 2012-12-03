@@ -255,10 +255,13 @@
                             break;
                         case 'z':
                             z=args[j].slice(1);
+
                             if(z === prevZ)continue;
                             sendLayer = layer;
-                            if(typeof(prevZ)!=="undefined"){sendLayerZ=prevZ;}
-                            else {sendLayerZ = z;}
+//                            if(typeof(prevZ)!=="undefined"){sendLayerZ=prevZ;}
+//                            else {
+                            sendLayerZ = z;//}
+                            z = Number(z);
                             if(z_heights.hasOwnProperty(z)){
                                 layer = z_heights[z];
                             }else{
