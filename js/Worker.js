@@ -273,8 +273,12 @@
     //                                else layer++;
                             prevZ = z;
                             break;
-                        case 'e'||'a'||'b'||'c':
+                        case 'e':
+                        case 'a':
+                        case 'b':
+                        case 'c':
                             numSlice = parseFloat(args[j].slice(1)).toFixed(3);
+
                             if(!extrudeRelative){
                                 // absolute extrusion positioning
                                 prev_extrude["abs"] = parseFloat(numSlice)-parseFloat(prev_extrude[argChar]);
