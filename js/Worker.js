@@ -220,6 +220,7 @@
         var comment = new RegExp()
         var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;
         var dcExtrude=false;
+        var assumeNonDC = false;
 
         for(var i=0;i<gcode.length;i++){
     //            for(var len = gcode.length- 1, i=0;i!=len;i++){
@@ -275,6 +276,7 @@
                         case 'a':
                         case 'b':
                         case 'c':
+                            assumeNonDC = true;
                             numSlice = parseFloat(args[j].slice(1)).toFixed(3);
 
                             if(!extrudeRelative){
@@ -310,7 +312,7 @@
                             break;
                     }
                 }
-                if(dcExtrude){
+                if(dcExtrude&&!assumeNonDC){
                     extrude = true;
                     prev_extrude["abs"] = Math.sqrt((prevX-x)*(prevX-x)+(prevY-y)*(prevY-y));
                 }
