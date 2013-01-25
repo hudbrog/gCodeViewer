@@ -210,7 +210,7 @@
     var doParse = function(){
         var argChar, numSlice;
         model=[];
-        var sendLayer = false;
+        var sendLayer = undefined;
         var sendLayerZ = 0;
         var sendMultiLayer = [];
         var sendMultiLayerZ = [];
@@ -218,7 +218,7 @@
     //            console.time("parseGCode timer");
         var reg = new RegExp(/^(?:G0|G1)\s/i);
         var comment = new RegExp()
-        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z, f, prevZ, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;
+        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;
         var dcExtrude=false;
 
         for(var i=0;i<gcode.length;i++){
@@ -255,20 +255,18 @@
                             break;
                         case 'z':
                             z=args[j].slice(1);
-
-                            if(z === prevZ)continue;
-                            sendLayer = layer;
-//                            if(typeof(prevZ)!=="undefined"){sendLayerZ=prevZ;}
-//                            else {
-                            sendLayerZ = z;//}
                             z = Number(z);
+                            if(z == prevZ)continue;
+//                            z = Number(z);
                             if(z_heights.hasOwnProperty(z)){
                                 layer = z_heights[z];
                             }else{
                                 layer = model.length;
                                 z_heights[z] = layer;
                             }
-    //                                if(parseFloat(prevZ) < )
+                            sendLayer = layer;
+                            sendLayerZ = z;
+                            //                                if(parseFloat(prevZ) < )
     //                                if(args[j].charAt(1) === "-")layer--;
     //                                else layer++;
                             prevZ = z;
@@ -354,6 +352,7 @@
                             else {
                                 prev_extrude[argChar] = numSlice;
                             }
+                            prevZ = z;
                             break;
                         default:
                             break;
@@ -362,29 +361,76 @@
                 if(!model[layer])model[layer]=[];
                 if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: parseFloat(x), y: parseFloat(y), z: parseFloat(z), extrude: extrude, retract: parseFloat(retract), noMove: true, extrusion: (extrude||retract)?parseFloat(prev_extrude["abs"]):0, prevX: parseFloat(prevX), prevY: parseFloat(prevY), prevZ: parseFloat(prevZ), speed: parseFloat(lastF),gcodeLine: parseFloat(i)};
             }else if(gcode[i].match(/^(?:G28)/i)){
-                x=0, y=0,z=0,prevZ=0, extrude=false;
-                if(typeof(prevX) === 'undefined'){prevX=0;}
-                if(typeof(prevY) === 'undefined'){prevY=0;}
+                var args = gcode[i].split(/\s/);
+                for(j=0;j<args.length;j++){
+                    switch(argChar = args[j].charAt(0).toLowerCase()){
+                        case 'x':
+                            x=args[j].slice(1);
+                            break;
+                        case 'y':
+                            y=args[j].slice(1);
+                            break;
+                        case 'z':
+                            z=args[j].slice(1);
+                            z = Number(z);
+                            if(z === prevZ)continue;
+                            sendLayer = layer;
+                            sendLayerZ = z;//}
+                            if(z_heights.hasOwnProperty(z)){
+                                layer = z_heights[z];
+                            }else{
+                                layer = model.length;
+                                z_heights[z] = layer;
+                            }
+                            prevZ = z;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                // G28 with no arguments
+                if(args.length == 1){
+                    //need to init values to default here
+                }
+                // if it's the first layer and G28 was without
+                if(layer==0&&typeof(z) === 'undefined'){
+                    z=0;
+                    if(z_heights.hasOwnProperty(z)){
+                        layer = z_heights[z];
+                    }else{
+                        layer = model.length;
+                        z_heights[z] = layer;
+                    }
+                    prevZ = z;
+                }
+//                x=0, y=0,z=0,prevZ=0, extrude=false;
+//                if(typeof(prevX) === 'undefined'){prevX=0;}
+//                if(typeof(prevY) === 'undefined'){prevY=0;}
 
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove:false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i)};
+//                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove:false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: parseFloat(i)};
             }
             if(typeof(sendLayer) !== "undefined"){
 //                sendLayerToParent(sendLayer, sendLayerZ, i/gcode.length*100);
 //                sendLayer = undefined;
-                sendMultiLayer[sendMultiLayer.length] = sendLayer;
-                sendMultiLayerZ[sendMultiLayerZ.length] = sendLayerZ;
 
-                if(i-lastSend > gcode.length*0.02){
+                if(i-lastSend > gcode.length*0.02 && sendMultiLayer.length != 0){
                     lastSend = i;
                     sendMultiLayerToParent(sendMultiLayer, sendMultiLayerZ, i/gcode.length*100);
                     sendMultiLayer = [];
                     sendMultiLayerZ = [];
                 }
+                sendMultiLayer[sendMultiLayer.length] = sendLayer;
+                sendMultiLayerZ[sendMultiLayerZ.length] = sendLayerZ;
                 sendLayer = undefined;
                 sendLayerZ = undefined;
             }
         }
+//        sendMultiLayer[sendMultiLayer.length] = layer;
+//        sendMultiLayerZ[sendMultiLayerZ.length] = z;
+        sendMultiLayerToParent(sendMultiLayer, sendMultiLayerZ, i/gcode.length*100);
+
 //            if(gCodeOptions["sortLayers"])sortLayers();
 //            if(gCodeOptions["purgeEmptyLayers"])purgeLayers();
 
