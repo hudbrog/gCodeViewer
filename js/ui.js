@@ -362,6 +362,9 @@ GCODE.ui = (function(){
 
             if(document.getElementById('differentiateColorsCheckbox').checked)GCODE.renderer.setOption({differentiateColors: true});
             else GCODE.renderer.setOption({differentiateColors: false});
+
+            if(document.getElementById('thickExtrusionCheckbox').checked)GCODE.renderer.setOption({extrusionWidth: 2});
+            else GCODE.renderer.setOption({extrusionWidth: 1});
         }
     }
 }());

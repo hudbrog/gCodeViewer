@@ -27,10 +27,10 @@ GCODE.renderer = (function(){
         showMoves: true,
         showRetracts: true,
         colorGrid: "#bbbbbb",
+        extrusionWidth: 1,
 //        colorLine: ["#000000", "#aabb88",  "#ffe7a0", "#6e7700", "#331a00", "#44ba97", "#08262f", "#db0e00", "#ff9977"],
         colorLine: ["#000000", "#45c7ba",  "#a9533a", "#ff44cc", "#dd1177", "#eeee22", "#ffbb55", "#ff5511", "#777788"],
-
-    colorMove: "#00ff00",
+        colorMove: "#00ff00",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
         sizeRetractSpot: 2,
@@ -119,7 +119,8 @@ GCODE.renderer = (function(){
         ctxWidth = canvas.width;
         lastX = ctxWidth/2;
         lastY = ctxHeight/2;
-
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
         trackTransforms(ctx);
 
         canvas.addEventListener('mousedown',function(evt){
@@ -166,6 +167,7 @@ GCODE.renderer = (function(){
     var drawGrid = function() {
         var i;
         ctx.strokeStyle = renderOptions["colorGrid"];
+        ctx.lineWidth = 1;
         var offsetX=0, offsetY=0;
         if(renderOptions["moveModel"]){
             offsetX = offsetModelX;
@@ -193,7 +195,6 @@ GCODE.renderer = (function(){
         layerNumStore=layerNum;
         progressStore = {from: fromProgress, to: toProgress};
         if(!model||!model[layerNum])return;
-
 
         var cmds = model[layerNum];
         var x, y;
@@ -241,6 +242,8 @@ GCODE.renderer = (function(){
         drawGrid();
 //        ctx.strokeStyle = renderOptions["colorLine"];
         for(i=fromProgress;i<=toProgress;i++){
+            ctx.lineWidth = 1;
+
             if(typeof(cmds[i]) === 'undefined')continue;
 
             if(typeof(cmds[i].prevX) !== 'undefined' && typeof(cmds[i].prevY) !== 'undefined'){
@@ -298,6 +301,7 @@ GCODE.renderer = (function(){
             else if(cmds[i].extrude){
                 if(cmds[i].retract==0){
                     ctx.strokeStyle = renderOptions["colorLine"][speedIndex];
+                    ctx.lineWidth = renderOptions['extrusionWidth'];
                     ctx.beginPath();
                     ctx.moveTo(prevX, prevY);
                     ctx.lineTo(x*zoomFactor,y*zoomFactor);
