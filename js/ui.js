@@ -367,6 +367,9 @@ GCODE.ui = (function(){
             if(Number($('#widthModifier').attr('value'))) {widthMod = Number($('#widthModifier').attr('value'));}
             if(document.getElementById('thickExtrusionCheckbox').checked)GCODE.renderer.setOption({extrusionWidth: widthMod});
             else GCODE.renderer.setOption({extrusionWidth: 1});
+
+            if(document.getElementById('showNextLayer').checked)GCODE.renderer.setOption({showNextLayer: true});
+            else GCODE.renderer.setOption({showNextLayer: false});
         }
     }
 }());

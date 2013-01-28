@@ -36,7 +36,8 @@ GCODE.renderer = (function(){
         sizeRetractSpot: 2,
         modelCenter: {x: 0, y: 0},
         moveModel: true,
-        differentiateColors: true
+        differentiateColors: true,
+        showNextLayer: false
     };
 
     var offsetModelX=0, offsetModelY=0;
@@ -45,7 +46,12 @@ GCODE.renderer = (function(){
 
 
     var reRender = function(){
-
+        var p1 = ctx.transformedPoint(0,0);
+        var p2 = ctx.transformedPoint(canvas.width,canvas.height);
+        ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+        if(renderOptions['showNextLayer'] && layerNumStore < model.length - 1) {
+            drawLayer(layerNumStore+1, 0, GCODE.renderer.getLayerNumSegments(layerNumStore+1), true);
+        }
         drawLayer(layerNumStore, progressStore.from, progressStore.to);
     };
 
@@ -190,10 +196,13 @@ GCODE.renderer = (function(){
 
     };
 
-    var drawLayer = function(layerNum, fromProgress, toProgress){
+    var drawLayer = function(layerNum, fromProgress, toProgress, isNextLayer){
         var i, speedIndex= 0, prevZ = 0;
-        layerNumStore=layerNum;
-        progressStore = {from: fromProgress, to: toProgress};
+        isNextLayer = typeof isNextLayer !== 'undefined' ? isNextLayer : false;
+        if(!isNextLayer){
+            layerNumStore=layerNum;
+            progressStore = {from: fromProgress, to: toProgress};
+        }
         if(!model||!model[layerNum])return;
 
         var cmds = model[layerNum];
@@ -235,10 +244,6 @@ GCODE.renderer = (function(){
 
         prevZ = GCODE.renderer.getZ(layerNum);
 
-        var p1 = ctx.transformedPoint(0,0);
-        var p2 = ctx.transformedPoint(canvas.width,canvas.height);
-        ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
-
         drawGrid();
 //        ctx.strokeStyle = renderOptions["colorLine"];
         for(i=fromProgress;i<=toProgress;i++){
@@ -255,7 +260,7 @@ GCODE.renderer = (function(){
             else x = cmds[i].x;
             if(typeof(cmds[i].y) === 'undefined'||isNaN(cmds[i].y))y=prevY/zoomFactor;
             else y = -cmds[i].y;
-            if(renderOptions["differentiateColors"]){
+            if(renderOptions["differentiateColors"]&&!renderOptions['showNextLayer']){
 //                if(speedsByLayer['extrude'][prevZ]){
                     speedIndex = speeds['extrude'].indexOf(cmds[i].speed);
 //                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer['extrude'][prevZ], function(obj) {return obj.speed === cmds[i].speed;});
@@ -268,6 +273,8 @@ GCODE.renderer = (function(){
                     speedIndex = speedIndex % (renderOptions["colorLine"].length-1);
     //                console.log("Too much colors");
                 }
+            }else if(renderOptions['showNextLayer']&&isNextLayer){
+                speedIndex=3;
             }else{
                 speedIndex=0;
             }
@@ -353,6 +360,13 @@ GCODE.renderer = (function(){
                 drawGrid();
             }else{
                 if(layerNum < model.length){
+                    var p1 = ctx.transformedPoint(0,0);
+                    var p2 = ctx.transformedPoint(canvas.width,canvas.height);
+                    ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+//                    ctx.globalAlpha = 0.5;
+                    if(renderOptions['showNextLayer'] && layerNum < model.length - 1) {
+                        drawLayer(layerNum+1, 0, this.getLayerNumSegments(layerNum+1), true);
+                    }
                     drawLayer(layerNum, fromProgress, toProgress);
                 }else{
                     console.log("Got request to render non-existent layer!!");
