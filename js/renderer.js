@@ -49,6 +49,7 @@ GCODE.renderer = (function(){
         var p1 = ctx.transformedPoint(0,0);
         var p2 = ctx.transformedPoint(canvas.width,canvas.height);
         ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+        drawGrid();
         if(renderOptions['showNextLayer'] && layerNumStore < model.length - 1) {
             drawLayer(layerNumStore+1, 0, GCODE.renderer.getLayerNumSegments(layerNumStore+1), true);
         }
@@ -244,7 +245,6 @@ GCODE.renderer = (function(){
 
         prevZ = GCODE.renderer.getZ(layerNum);
 
-        drawGrid();
 //        ctx.strokeStyle = renderOptions["colorLine"];
         for(i=fromProgress;i<=toProgress;i++){
             ctx.lineWidth = 1;
@@ -363,6 +363,7 @@ GCODE.renderer = (function(){
                     var p1 = ctx.transformedPoint(0,0);
                     var p2 = ctx.transformedPoint(canvas.width,canvas.height);
                     ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
+                    drawGrid();
 //                    ctx.globalAlpha = 0.5;
                     if(renderOptions['showNextLayer'] && layerNum < model.length - 1) {
                         drawLayer(layerNum+1, 0, this.getLayerNumSegments(layerNum+1), true);
