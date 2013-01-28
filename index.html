@@ -43,6 +43,19 @@
     <div id="progressbar"></div>
 </div>
 
+<div class="navbar navbar-fixed-top">
+    <div class="navbar-inner">
+        <div class="container">
+            <ul class="nav">
+                <li >
+                    <a class="brand" href="#">GCode Viewer</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+
 <div id="wrap" class="ui-widget ui-widget-content ui-corner-all">
     <div id="control">
         <center><img src="img/logo.png" /></center>
@@ -150,13 +163,13 @@
     <div id="gcode">
         <div id="tabs-min" class="tabbable">
             <ul id="myTab" class="nav nav-tabs">
-                <li class="active"><a href="#tab2d" data-toggle="tab">2D</a></li>
+                <li class=""><a href="#tab2d" data-toggle="tab">2D</a></li>
                 <li class=""><a href="#tab3d" data-toggle="tab">3D</a></li>
                 <li class=""><a href="#tabGCode" data-toggle="tab">GCode</a></li>
-                <li class=""><a href="#tabAbout" data-toggle="tab">About</a></li>
+                <li class="active"><a href="#tabAbout" data-toggle="tab">About</a></li>
             </ul>
             <div class="tab-content">
-                <div class="tab-pane active" id="tab2d">
+                <div class="tab-pane" id="tab2d">
                     <canvas id="canvas" width="650" height="620"></canvas>
                     <div id="slider-vertical"></div>
                     <div id="slider-horizontal"></div>
@@ -167,10 +180,10 @@
                 <div class="tab-pane" id="tabGCode">
                     <div id="gCodeContainer"></div>
                 </div>
-                <div class="tab-pane" id="tabAbout">
+                <div class="tab-pane active" id="tabAbout">
                     <div class="aboutpage">
                         <h2><center>gCodeViewer</center></h2>
-                        <b>gCodeViewer</b> is a visual GCode analyzer in your own browser! It works on any OS in almost any modern browser (chrome, ff, safari 6, opera, ie10 should work too). All you need to do - is drag your *.gcode file to the designated zone.<br><br>
+                        <b>gCodeViewer</b> is a visual GCode visualizer, viewer and analyzer in your own browser! It works on any OS in almost any modern browser (chrome, ff, safari 6, opera, ie10 should work too). All you need to do - is drag your *.gcode file to the designated zone.<br><br>
                         Current features include:<br>
                         <ul>
                         <li>Visualize GCode in 2D, layer by layer</li>
@@ -178,6 +191,8 @@
                         <li>Show retracts and restarts</li>
                         <li>Show print/move/retract speeds</li>
                         <li>Display only part of layer, animate sequence of layer printing</li>
+                        <li><b>NEW!!</b> Show two layers simultaneously so you can check overhangs</li>
+                        <li><b>NEW!!</b> Adjust line width to simulate print more closely</li>
                             </ul>
                         <li>Analyze GCode</li>
                             <ul>

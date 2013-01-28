@@ -212,7 +212,7 @@ GCODE.ui = (function(){
                 resultSet.push("Layer count: " + data.msg.layerCnt.toFixed(0) + "printed, " + data.msg.layerTotal.toFixed(0) + 'visited<br>');
                 document.getElementById('list').innerHTML =  resultSet.join('');
                 chooseAccordion('infoAccordionTab');
-
+                $('#myTab a[href="#tab2d"]').tab('show');
                 break;
             case 'returnLayer':
                 GCODE.gCodeReader.processLayerFromWorker(data.msg);
