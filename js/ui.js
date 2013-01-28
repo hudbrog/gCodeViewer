@@ -363,7 +363,9 @@ GCODE.ui = (function(){
             if(document.getElementById('differentiateColorsCheckbox').checked)GCODE.renderer.setOption({differentiateColors: true});
             else GCODE.renderer.setOption({differentiateColors: false});
 
-            if(document.getElementById('thickExtrusionCheckbox').checked)GCODE.renderer.setOption({extrusionWidth: 2});
+            var widthMod = 2;
+            if(Number($('#widthModifier').attr('value'))) {widthMod = Number($('#widthModifier').attr('value'));}
+            if(document.getElementById('thickExtrusionCheckbox').checked)GCODE.renderer.setOption({extrusionWidth: widthMod});
             else GCODE.renderer.setOption({extrusionWidth: 1});
         }
     }
