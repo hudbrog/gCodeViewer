@@ -354,7 +354,7 @@
                             else {
                                 prev_extrude[argChar] = numSlice;
                             }
-                            prevZ = z;
+//                            prevZ = z;
                             break;
                         default:
                             break;
