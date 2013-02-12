@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc= "http://purl.org/dc/elements/1.1/">
+    <rdf:Description rdf:about="http://www.yoursite.com/">
+        <dc:contributor>hudbrog</dc:contributor>
+        <dc:date>2013-02-01</dc:date>
+        <dc:description>gcode viewer - gCodeViewer is a visual G-Code visualizer, viewer and analyzer online in your own browser!</dc:description>
+        <dc:language>EN</dc:language>
+        <dc:publisher>hudbrog</dc:publisher>
+        <dc:source>http://gcode.ws/</dc:source>
+    </rdf:Description>
+</rdf:RDF>

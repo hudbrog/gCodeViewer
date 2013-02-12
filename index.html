@@ -1,8 +1,18 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html>
 <head>
-    <title>gCodeViewer - online gcode viewer and analyzer in your browser!</title>
+    <title>gcode viewer - online gcode viewer and analyzer in your browser!</title>
     <meta name="description" content="Visual GCode viewer and analyzer in your browser. No need to upload you GCode anywhere, everything is done locally.">
+    <meta name="keywords" content="GCode,g-code,viewer,online,javascript">
+    <meta charset="UTF-8">
+    <meta name="language" content="english" />
+
+    <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="favicon.ico" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="sitemap.xml" />
+    <link rel="meta" type="application/rdf+xml" title="Dublin" href="dublin.rdf" />
+    <link rel="canonical" href="http://gcode.ws/">
+
+
     <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="css/bootstrap.css" media="screen" />
     <link rel="stylesheet" type="text/css" href="lib/codemirror.css" media="screen" />
@@ -24,7 +34,7 @@
     <script type="text/javascript">
 
         var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', 'UA-35746662-1']);
+        _gaq.push(['_setAccount', 'UA-38437619-1']);
         _gaq.push(['_trackPageview']);
 
         (function() {
@@ -34,10 +44,31 @@
         })();
 
     </script>
+    <script type="text/javascript">
+        (function() {
+            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+            po.src = 'https://apis.google.com/js/plusone.js';
+            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+        })();
+    </script>
+
+    <meta property="og:title" content="gCodeViewer - online gcode viewer and analyzer!" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://gcode.ws" />
+    <meta property="og:image" content="http://gcode.ws/screenshot.jpg" />
+    <meta property="og:site_name" content="Online GCode Viewer" />
+    <meta property="fb:admins" content="1537520789" />
 
 </head>
 <body>
-
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = "//connect.facebook.net/ru_RU/all.js#xfbml=1&appId=122261684619414";
+    fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
 <div id="dialog-modal" title="Basic modal dialog" style="display: none;">
     Generating 3d model<br>
     <div id="progressbar"></div>
@@ -51,6 +82,24 @@
                     <a class="brand" href="#">GCode Viewer</a>
                 </li>
             </ul>
+            <ul class="nav pull-right">
+                <li class="dropdown">
+                    <a href="#"
+                       class="dropdown-toggle"
+                       data-toggle="dropdown">
+                        Spread the word
+                        <b class="caret"></b>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li class="socials">
+                            <g:plusone annotation="inline" width="150"></g:plusone>
+                        </li>
+                        <li class="socials"><div class="fb-like" data-href="http://gcode.ws" data-send="false" data-layout="button_count" data-width="150" data-show-faces="true" data-action="recommend"></div></li>
+                        <li class="socials"><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://gcode.ws" data-text="Check out a nice online gcode viewer!">Tweet</a>
+                            <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0];if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src="//platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script></li>
+                    </ul>
+                </li>
+            </ul>
         </div>
     </div>
 </div>
@@ -58,7 +107,7 @@
 
 <div id="wrap" class="ui-widget ui-widget-content ui-corner-all">
     <div id="control">
-        <center><img src="img/logo.png" /></center>
+        <img src="img/logo.png" alt="gCodeViewer - an online gcode viewer"/>
 
         <div id="accordion2" class="accordion">
             <div class="accordion-group">
@@ -182,7 +231,7 @@
                 </div>
                 <div class="tab-pane active" id="tabAbout">
                     <div class="aboutpage">
-                        <h2><center>gCodeViewer</center></h2>
+                        <h1>gCodeViewer</h1>
                         <b>gCodeViewer</b> is a visual GCode visualizer, viewer and analyzer in your own browser! It works on any OS in almost any modern browser (chrome, ff, safari 6, opera, ie10 should work too). All you need to do - is drag your *.gcode file to the designated zone.<br><br>
                         Current features include:<br>
                         <ul>
