@@ -16,12 +16,19 @@ GCODE.gCodeReader = (function(){
     var printTimeByLayer;
     var totalFilament=0;
     var printTime=0;
+    var totalWeight = 0;
+    var layerHeight = 0;
+    var layerCnt = 0;
+    var layerTotal = 0;
     var speeds = {};
     var speedsByLayer = {};
     var gCodeOptions = {
         sortLayers: false,
         purgeEmptyLayers: true,
-        analyzeModel: false
+        analyzeModel: false,
+        filamentType: "ABS",
+        filamentDia: 1.75,
+        nozzleDia: 0.4
     };
 
     var prepareGCode = function(){
@@ -152,6 +159,17 @@ GCODE.gCodeReader = (function(){
             speedsByLayer = msg.speedsByLayer;
             printTime = msg.printTime;
             printTimeByLayer = msg.printTimeByLayer;
+            layerHeight = msg.layerHeight;
+            layerCnt = msg.layerCnt;
+            layerTotal = msg.layerTotal;
+
+            var density = 1;
+            if(gCodeOptions['filamentType'] === 'ABS') {
+                density = 1.04;
+            }else if(gCodeOptions['filamentType'] === 'PLA') {
+                density = 1.24;
+            }
+            totalWeight = 3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4*totalFilament/10;
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
@@ -168,13 +186,20 @@ GCODE.gCodeReader = (function(){
                 speeds: speeds,
                 speedsByLayer: speedsByLayer,
                 printTime: printTime,
-                printTimeByLayer: printTimeByLayer
+                printTimeByLayer: printTimeByLayer,
+                totalWeight: totalWeight,
+                layerHeight: layerHeight,
+                layerCnt: layerCnt,
+                layerTotal: layerTotal
             };
         },
         getGCodeLines: function(layer, fromSegments, toSegments){
             var i=0;
             var result = {first: model[layer][fromSegments].gcodeLine, last: model[layer][toSegments].gcodeLine};
             return result;
+        },
+        getOptions: function(){
+            return gCodeOptions;
         }
     }
 }());

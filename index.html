@@ -198,6 +198,23 @@
                 </div>
             </div>
 
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#printerInfoAccordioinTab">
+                        Printer Info
+                    </a>
+                </div>
+                <div id="printerInfoAccordioinTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <label for="filamentDia">Plastic diameter: <input type="text" value="1.75" id="filamentDia" onchange="GCODE.ui.processOptions()"/></label>
+                        <label>Plastic type: </label>
+                            <label for="plasticABS"><input type="radio" name="radPlastic" id="plasticABS" value="ABS"  onclick="GCODE.ui.processOptions()" checked>ABS</label>
+                            <label for="plasticPLA"><input type="radio" name="radPlastic" id="plasticPLA" value="PLA"  onclick="GCODE.ui.processOptions()" >PLA</label>
+                        <label for="nozzleDia">Nozzle size: <input type="text" value="0.4" id="nozzleDia" onchange="GCODE.ui.processOptions()"/></label>
+                    </div>
+                </div>
+            </div>
+
         </div>
         <output id="errorList"></output>
 
@@ -261,7 +278,7 @@
     </div>
 </div>
 <script>
-    window.onload = GCODE.ui.initHandlers;
+    GCODE.ui.initHandlers();
 </script>
 
 <script type="text/javascript">

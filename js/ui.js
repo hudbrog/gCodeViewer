@@ -84,6 +84,19 @@ GCODE.ui = (function(){
 //        chooseAccordion('layerAccordionTab');
     };
 
+    var printModelInfo = function(){
+        var resultSet = [];
+        var modelInfo = GCODE.gCodeReader.getModelInfo();
+
+        resultSet.push("Model size is: " + modelInfo.modelSize.x.toFixed(2) + 'x' + modelInfo.modelSize.y.toFixed(2) + 'x' + modelInfo.modelSize.z.toFixed(2)+'mm<br>');
+        resultSet.push("Total filament used: " + modelInfo.totalFilament.toFixed(2) + "mm<br>");
+        resultSet.push("Total filament weight used: " + modelInfo.totalWeight.toFixed(2) + "grams<br>");
+        resultSet.push("Estimated print time: " + parseInt(parseFloat(modelInfo.printTime)/60/60) + ":" + parseInt((parseFloat(modelInfo.printTime)/60)%60) + ":" + parseInt(parseFloat(modelInfo.printTime)%60) + "<br>");
+        resultSet.push("Estimated layer height: " + modelInfo.layerHeight.toFixed(2) + "mm<br>");
+        resultSet.push("Layer count: " + modelInfo.layerCnt.toFixed(0) + "printed, " + modelInfo.layerTotal.toFixed(0) + 'visited<br>');
+        document.getElementById('list').innerHTML =  resultSet.join('');
+    }
+
     var handleFileSelect = function(evt) {
 //        console.log("handleFileSelect");
         evt.stopPropagation();
@@ -205,12 +218,8 @@ GCODE.ui = (function(){
                 GCODE.gCodeReader.processAnalyzeModelDone(data.msg);
                 GCODE.gCodeReader.passDataToRenderer();
                 initSliders();
-                resultSet.push("Model size is: " + data.msg.modelSize.x.toFixed(2) + 'x' + data.msg.modelSize.y.toFixed(2) + 'x' + data.msg.modelSize.z.toFixed(2)+'mm<br>');
-                resultSet.push("Total filament used: " + data.msg.totalFilament.toFixed(2) + "mm<br>");
-                resultSet.push("Estimated print time: " + parseInt(parseFloat(data.msg.printTime)/60/60) + ":" + parseInt((parseFloat(data.msg.printTime)/60)%60) + ":" + parseInt(parseFloat(data.msg.printTime)%60) + "<br>");
-                resultSet.push("Estimated layer height: " + data.msg.layerHeight.toFixed(2) + "mm<br>");
-                resultSet.push("Layer count: " + data.msg.layerCnt.toFixed(0) + "printed, " + data.msg.layerTotal.toFixed(0) + 'visited<br>');
-                document.getElementById('list').innerHTML =  resultSet.join('');
+                printModelInfo();
+                printLayerInfo(0);
                 chooseAccordion('infoAccordionTab');
                 $('#myTab a[href="#tab2d"]').tab('show');
                 break;
@@ -314,7 +323,7 @@ GCODE.ui = (function(){
             });
             myCodeMirror.setSize("680","640");
 //            console.log(myCodeMirror);
-
+            chooseAccordion('fileAccordionTab');
 
         },
 
@@ -340,17 +349,6 @@ GCODE.ui = (function(){
             if(document.getElementById('showGCodeCheckbox').checked)showGCode = true;
             else showGCode = false;
 
-
-//            if(document.getElementById('sortLayersCheckbox').checked) worker.postMessage({"cmd":"setOption", "msg":{sortLayers: true}});
-//            else  worker.postMessage({"cmd":"setOption", "msg":{sortLayers: false}});
-//
-//            if(document.getElementById('purgeEmptyLayersCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: true}});
-//            else worker.postMessage({"cmd":"setOption", "msg":{purgeEmptyLayers: false}});
-
-//            if(document.getElementById('analyzeModelCheckbox').checked)worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: true}});
-//            else worker.postMessage({"cmd":"setOption", "msg":{analyzeModel: false}});
-
-
             if(document.getElementById('moveModelCheckbox').checked)GCODE.renderer.setOption({moveModel: true});
             else GCODE.renderer.setOption({moveModel: false});
 
@@ -370,6 +368,17 @@ GCODE.ui = (function(){
 
             if(document.getElementById('showNextLayer').checked)GCODE.renderer.setOption({showNextLayer: true});
             else GCODE.renderer.setOption({showNextLayer: false});
+
+            var filamentDia = 1.75;
+            if(Number($('#filamentDia').attr('value'))) {filamentDia = Number($('#filamentDia').attr('value'));}
+            GCODE.gCodeReader.setOption({filamentDia: filamentDia});
+
+            var nozzleDia = 0.4;
+            if(Number($('#nozzleDia').attr('value'))) {nozzleDia = Number($('#nozzleDia').attr('value'));}
+            GCODE.gCodeReader.setOption({nozzleDia: nozzleDia});
+
+            if(document.getElementById('plasticABS').checked)GCODE.gCodeReader.setOption({filamentType: "ABS"});
+            if(document.getElementById('plasticPLA').checked)GCODE.gCodeReader.setOption({filamentType: "PLA"});
         }
     }
 }());
