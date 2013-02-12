@@ -13,11 +13,11 @@ GCODE.ui = (function(){
     var sliderHor;
     var gCodeLines = {first: 0, last: 0};
     var showGCode = false;
+//    var worker;
 
     var setProgress = function(id, progress){
-        $('#'+id).width(parseInt(progress)+'%');
-        $('#'+id).text(parseInt(progress)+'%');
-
+        $('#'+id).width(parseInt(progress)+'%').text(parseInt(progress)+'%');
+//        $('#'+id);
     };
 
     var chooseAccordion = function(id){
@@ -26,15 +26,14 @@ GCODE.ui = (function(){
     };
 
     var setLinesColor = function(toggle){
-        var i=0;
-        for(i=gCodeLines.first;i<gCodeLines.last; i++){
+        for(var i=gCodeLines.first;i<gCodeLines.last; i++){
             if(toggle){
                 myCodeMirror.setLineClass(Number(i), null, "activeline");
             }else{
                 myCodeMirror.setLineClass(Number(i), null, null);
             }
         }
-    }
+    };
 
 
     var printLayerInfo = function(layerNum){
@@ -45,9 +44,9 @@ GCODE.ui = (function(){
         var renderOptions = GCODE.renderer.getOptions();
         var colors = renderOptions["colorLine"];
         var speedIndex = 0;
-        var keys, type;
-        var showMove=false;
-        var i = 0;
+//        var keys, type;
+//        var showMove=false;
+        var i;
         var output = [];
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
@@ -95,7 +94,7 @@ GCODE.ui = (function(){
         resultSet.push("Estimated layer height: " + modelInfo.layerHeight.toFixed(2) + "mm<br>");
         resultSet.push("Layer count: " + modelInfo.layerCnt.toFixed(0) + "printed, " + modelInfo.layerTotal.toFixed(0) + 'visited<br>');
         document.getElementById('list').innerHTML =  resultSet.join('');
-    }
+    };
 
     var handleFileSelect = function(evt) {
 //        console.log("handleFileSelect");
@@ -139,8 +138,8 @@ GCODE.ui = (function(){
     };
 
     var initSliders = function(){
-        var prevX=0;
-        var prevY=0;
+//        var prevX=0;
+//        var prevY=0;
         var handle;
         sliderVer =  $( "#slider-vertical" );
         sliderHor = $( "#slider-horizontal" );
@@ -167,7 +166,7 @@ GCODE.ui = (function(){
         });
 
         //this stops slider reacting to arrow keys, since we do it below manually
-        $( "#slider-vertical .ui-slider-handle" ).unbind('keydown');
+        $( "#slider-vertical").find(".ui-slider-handle" ).unbind('keydown');
 
         sliderHor.slider({
             orientation: "horizontal",
@@ -204,7 +203,7 @@ GCODE.ui = (function(){
         switch (data.cmd) {
             case 'returnModel':
                 setProgress('loadProgress', 100);
-                worker.postMessage({
+                GCODE.ui.worker.postMessage({
                         "cmd":"analyzeModel",
                         "msg":{
                         }
@@ -212,7 +211,7 @@ GCODE.ui = (function(){
                 );
                 break;
             case 'analyzeDone':
-                var resultSet = [];
+//                var resultSet = [];
 
                 setProgress('analyzeProgress',100);
                 GCODE.gCodeReader.processAnalyzeModelDone(data.msg);
@@ -221,7 +220,7 @@ GCODE.ui = (function(){
                 printModelInfo();
                 printLayerInfo(0);
                 chooseAccordion('infoAccordionTab');
-                $('#myTab a[href="#tab2d"]').tab('show');
+                $('#myTab').find('a[href="#tab2d"]').tab('show');
                 break;
             case 'returnLayer':
                 GCODE.gCodeReader.processLayerFromWorker(data.msg);
@@ -254,7 +253,7 @@ GCODE.ui = (function(){
 
         if(fatal.length>0){
             document.getElementById('errorList').innerHTML = '<ul>' + fatal.join('') + '</ul>';
-            console.log("Initialization failed: unsupported browser.")
+            console.log("Initialization failed: unsupported browser.");
             return false;
         }
 
@@ -265,7 +264,7 @@ GCODE.ui = (function(){
         if(!Modernizr.draganddrop)warnings.push("<li>Your browser doesn't seem to support HTML5 Drag'n'Drop, Drop area will not work.</li>");
 
         if(warnings.length>0){
-            document.getElementById('errorList').innerHTML = '<ul>' + wanings.join('') + '</ul>';
+            document.getElementById('errorList').innerHTML = '<ul>' + warnings.join('') + '</ul>';
             console.log("Initialization succeeded with warnings.")
         }
         return true;
@@ -290,14 +289,14 @@ GCODE.ui = (function(){
 
             $(".collapse").collapse({parent: '#accordion2'});
 
-            $('#myTab a[href="#tab3d"]').click(function (e) {
+            $('#myTab').find('a[href="#tab3d"]').click(function (e) {
                 e.preventDefault();
                 console.log("Switching to 3d mode");
                 $(this).tab('show');
                 GCODE.renderer3d.doRender();
             });
 
-            $('#myTab a[href="#tabGCode"]').click(function (e) {
+            $('#myTab').find('a[href="#tabGCode"]').click(function (e) {
                 e.preventDefault();
                 console.log("Switching to GCode preview mode");
                 $(this).tab('show');
@@ -308,9 +307,9 @@ GCODE.ui = (function(){
                 myCodeMirror.focus();
             });
 
-            worker = new Worker('js/Worker.js');
+            this.worker = new Worker('js/Worker.js');
 
-            worker.addEventListener('message', processMessage, false);
+            this.worker.addEventListener('message', processMessage, false);
 
             GCODE.ui.processOptions();
             GCODE.renderer.render(0,0);
@@ -327,18 +326,6 @@ GCODE.ui = (function(){
 
         },
 
-        ArrayIndexOf: function(a, fnc) {
-            if (!fnc || typeof (fnc) != 'function') {
-                return -1;
-            }
-            if (!a || !a.length || a.length < 1) return -1;
-            for (var i = 0; i < a.length; i++) {
-                if(!a[i]) continue;
-                if (fnc(a[i])) return i;
-            }
-            return -1;
-        },
-
         processOptions: function(){
             if(document.getElementById('sortLayersCheckbox').checked)GCODE.gCodeReader.setOption({sortLayers: true});
             else GCODE.gCodeReader.setOption({sortLayers: false});
@@ -346,8 +333,7 @@ GCODE.ui = (function(){
             if(document.getElementById('purgeEmptyLayersCheckbox').checked)GCODE.gCodeReader.setOption({purgeEmptyLayers: true});
             else GCODE.gCodeReader.setOption({purgeEmptyLayers: false});
 
-            if(document.getElementById('showGCodeCheckbox').checked)showGCode = true;
-            else showGCode = false;
+            showGCode = document.getElementById('showGCodeCheckbox').checked;
 
             if(document.getElementById('moveModelCheckbox').checked)GCODE.renderer.setOption({moveModel: true});
             else GCODE.renderer.setOption({moveModel: false});

@@ -102,7 +102,7 @@ GCODE.gCodeReader = (function(){
             reader.target.result = null;
 //            prepareGCode();
 
-            worker.postMessage({
+            GCODE.ui.worker.postMessage({
                     "cmd":"parseGCode",
                     "msg":{
                         gcode: lines,
