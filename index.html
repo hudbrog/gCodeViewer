@@ -1,16 +1,16 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>gcode viewer - online gcode viewer and analyzer in your browser!</title>
-    <meta name="description" content="Visual GCode viewer and analyzer in your browser. No need to upload you GCode anywhere, everything is done locally.">
-    <meta name="keywords" content="GCode,g-code,viewer,online,javascript">
-    <meta charset="UTF-8">
+    <meta name="description" content="Visual GCode viewer and analyzer in your browser. No need to upload you GCode anywhere, everything is done locally." />
+    <meta name="keywords" content="GCode,g-code,viewer,online,javascript" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta name="language" content="english" />
 
     <link rel="shortcut icon" type="image/vnd.microsoft.icon" href="favicon.ico" />
-    <link rel="sitemap" type="application/xml" title="Sitemap" href="sitemap.xml" />
-    <link rel="meta" type="application/rdf+xml" title="Dublin" href="dublin.rdf" />
-    <link rel="canonical" href="http://gcode.ws/">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+    <link rel="meta" type="application/rdf+xml" title="Dublin" href="/dublin.rdf" />
+    <link rel="canonical" href="http://gcode.ws/" />
 
 
     <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.css" media="screen" />
@@ -44,13 +44,6 @@
         })();
 
     </script>
-    <script type="text/javascript">
-        (function() {
-            var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
-            po.src = 'https://apis.google.com/js/plusone.js';
-            var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
-        })();
-    </script>
 
     <meta property="og:title" content="gCodeViewer - online gcode viewer and analyzer!" />
     <meta property="og:type" content="website" />
@@ -62,15 +55,16 @@
 </head>
 <body>
 <div id="fb-root"></div>
-<script>(function(d, s, id) {
+<script type="text/javascript">(function(d, s, id) {
     var js, fjs = d.getElementsByTagName(s)[0];
     if (d.getElementById(id)) return;
     js = d.createElement(s); js.id = id;
     js.src = "//connect.facebook.net/ru_RU/all.js#xfbml=1&appId=122261684619414";
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
+
 <div id="dialog-modal" title="Basic modal dialog" style="display: none;">
-    Generating 3d model<br>
+    Generating 3d model<br />
     <div id="progressbar"></div>
 </div>
 
@@ -92,7 +86,7 @@
                     </a>
                     <ul class="dropdown-menu">
                         <li class="socials">
-                            <g:plusone annotation="inline" width="150"></g:plusone>
+                            <div class="g-plusone" data-annotation="inline" data-width="150"></div>
                         </li>
                         <li class="socials"><div class="fb-like" data-href="http://gcode.ws" data-send="false" data-layout="button_count" data-width="150" data-show-faces="true" data-action="recommend"></div></li>
                         <li class="socials"><a href="https://twitter.com/share" class="twitter-share-button" data-url="http://gcode.ws" data-text="Check out a nice online gcode viewer!">Tweet</a>
@@ -136,10 +130,10 @@
                     <div class="accordion-inner">
                         <div id="progressBlock">
                             <div class="progress" >
-                                <div id="loadProgress" class="bar" style="width: 0%;"></div>
+                                <div id="loadProgress" class="bar" style="width: 0;"></div>
                             </div>
                             <div class="progress" >
-                                <div id="analyzeProgress" class="bar" style="width: 0%;"></div>
+                                <div id="analyzeProgress" class="bar" style="width: 0;"></div>
                             </div>
                         </div>
                     </div>
@@ -177,13 +171,13 @@
                 </div>
                 <div id="options2DAccordionTab" class="accordion-body collapse">
                     <div class="accordion-inner">
-                        <input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.ui.processOptions()" checked>Show non-extrusion moves</input><br>
-                        <input type="checkbox" id="showRetractsCheckbox" value="2"  onclick="GCODE.ui.processOptions()" checked>Show retracts and restarts</input><br>
-                        <input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.ui.processOptions()" checked>Move model to the center of the grid</input><br>
-                        <input type="checkbox" id="differentiateColorsCheckbox" value="7"  onclick="GCODE.ui.processOptions()" checked>Show different speeds with different colors</input><br>
-                        <input type="checkbox" id="thickExtrusionCheckbox" value="8"  onclick="GCODE.ui.processOptions()">Emulate extrusion width</input><br>
-                        Width modifier: <input type="text" value="2" id="widthModifier" onchange="GCODE.ui.processOptions()"/><br>
-                        <input type="checkbox" id="showNextLayer" value="9"  onclick="GCODE.ui.processOptions()" >Show +1 layer</input><br>
+                        <label for="showMovesCheckbox"><input type="checkbox" id="showMovesCheckbox" value="1"  onclick="GCODE.ui.processOptions()" checked> Show non-extrusion moves</label>
+                        <label for="showRetractsCheckbox"><input type="checkbox" id="showRetractsCheckbox" value="2" onclick="GCODE.ui.processOptions()" checked> Show retracts and restarts</label>
+                        <label for="moveModelCheckbox"><input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.ui.processOptions()" checked> Move model to the center of the grid</label>
+                        <label for="differentiateColorsCheckbox"><input type="checkbox" id="differentiateColorsCheckbox" value="7"  onclick="GCODE.ui.processOptions()" checked> Show different speeds with different colors</label>
+                        <label for="thickExtrusionCheckbox"><input type="checkbox" id="thickExtrusionCheckbox" value="8"  onclick="GCODE.ui.processOptions()"> Emulate extrusion width</label>
+                        <label for="widthModifier">Width modifier: <input type="text" value="2" id="widthModifier" onchange="GCODE.ui.processOptions()"/></label>
+                        <label for="showNextLayer"><input type="checkbox" id="showNextLayer" value="9"  onclick="GCODE.ui.processOptions()" > Show +1 layer</label>
                     </div>
                 </div>
             </div>
@@ -196,10 +190,10 @@
                 </div>
                 <div id="analyzeOptionsAccordioinTab" class="accordion-body collapse">
                     <div class="accordion-inner">
-                        These require re-analyzing file:<br>
-                        <input type="checkbox" id="sortLayersCheckbox" value="4" onclick="GCODE.ui.processOptions()" checked>Sort layers by Z</input><br>
-                        <input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.ui.processOptions()" checked>Hide empty layers</input><br>
-                        <input type="checkbox" id="showGCodeCheckbox" value="6" onclick="GCODE.ui.processOptions()" checked>Show GCode in GCode tab (memory intensive!)</input><br>
+                        These require re-analyzing file:<br />
+                        <label for="sortLayersCheckbox"><input type="checkbox" id="sortLayersCheckbox" value="4" onclick="GCODE.ui.processOptions()" checked>Sort layers by Z</label>
+                        <label for="purgeEmptyLayersCheckbox"><input type="checkbox" id="purgeEmptyLayersCheckbox" value="5"  onclick="GCODE.ui.processOptions()" checked>Hide empty layers</label>
+                        <label for="showGCodeCheckbox"><input type="checkbox" id="showGCodeCheckbox" value="6" onclick="GCODE.ui.processOptions()" checked>Show GCode in GCode tab (memory intensive!)</label>
                     </div>
                 </div>
             </div>
@@ -232,30 +226,33 @@
                 <div class="tab-pane active" id="tabAbout">
                     <div class="aboutpage">
                         <h1>gCodeViewer</h1>
-                        <b>gCodeViewer</b> is a visual GCode visualizer, viewer and analyzer in your own browser! It works on any OS in almost any modern browser (chrome, ff, safari 6, opera, ie10 should work too). All you need to do - is drag your *.gcode file to the designated zone.<br><br>
-                        Current features include:<br>
+                        <b>gCodeViewer</b> is a visual GCode visualizer, viewer and analyzer in your own browser! It works on any OS in almost any modern browser (chrome, ff, safari 6, opera, ie10 should work too). All you need to do - is drag your *.gcode file to the designated zone.<br /><br />
+                        Current features include:<br />
                         <ul>
-                        <li>Visualize GCode in 2D, layer by layer</li>
-                            <ul>
-                        <li>Show retracts and restarts</li>
-                        <li>Show print/move/retract speeds</li>
-                        <li>Display only part of layer, animate sequence of layer printing</li>
-                        <li><b>NEW!!</b> Show two layers simultaneously so you can check overhangs</li>
-                        <li><b>NEW!!</b> Adjust line width to simulate print more closely</li>
-                            </ul>
-                        <li>Analyze GCode</li>
-                            <ul>
-                        <li>Print time, amount of plastic used, layer height, etc. for whole file and for single layer</li>
-                        <li>Reference visualized part to GCode file (i.e. select a certain part of 2d visualization, switch to GCode view - it will highlight list of lines responsible for visualized piece)</li>
-                            </ul>
-                        <li>Multiplatform, available online (but works offline too), works locally (doesn't upload you g-code anywhere or download anything but application itself)</li>
-                        <li>3D visualization (I don't know what for, it's dull and useless.. need to rewrite it to be like in repetier host)</li>
-                        <li>And yeah, it's slow, memory hungry and only supports modern browsers</li>
-                        <li>Totally open source so you can use it as you like</li>
-                        </ul><br><br>
-                        All sources are available at <a href="https://github.com/hudbrog/gCodeViewer">https://github.com/hudbrog/gCodeViewer</a><br>
-                        If you find any bugs or have feature requests - don't hesitate to post them to <a href="https://github.com/hudbrog/gCodeViewer/issues">https://github.com/hudbrog/gCodeViewer/issues</a><br>
-                        And I would appreciate if you like it on Thingiverse page: <a href="http://www.thingiverse.com/thing:35248">http://www.thingiverse.com/thing:35248</a><br>
+                            <li>Visualize GCode in 2D, layer by layer
+                                <ul>
+                                    <li>Show retracts and restarts</li>
+                                    <li>Show print/move/retract speeds</li>
+                                    <li>Display only part of layer, animate sequence of layer printing</li>
+                                    <li><b>NEW!!</b> Show two layers simultaneously so you can check overhangs</li>
+                                    <li><b>NEW!!</b> Adjust line width to simulate print more closely</li>
+                                </ul>
+                            </li>
+                            <li>Analyze GCode
+                                <ul>
+                                    <li>Print time, amount of plastic used, layer height, etc. for whole file and for single layer</li>
+                                    <li>Reference visualized part to GCode file (i.e. select a certain part of 2d visualization, switch to GCode view - it will highlight list of lines responsible for visualized piece)</li>
+                                </ul>
+                            </li>
+                            <li>Multiplatform, available online (but works offline too), works locally (doesn't upload you g-code anywhere or download anything but application itself)</li>
+                            <li>3D visualization (I don't know what for, it's dull and useless.. need to rewrite it from scratch)</li>
+                            <li>And yeah, it's slow, memory hungry and only supports modern browsers</li>
+                            <li>Totally open source so you can use it as you like</li>
+                        </ul>
+                        <br /><br />
+                        All sources are available at <a href="https://github.com/hudbrog/gCodeViewer">https://github.com/hudbrog/gCodeViewer</a><br />
+                        If you find any bugs or have feature requests - don't hesitate to post them to <a href="https://github.com/hudbrog/gCodeViewer/issues">https://github.com/hudbrog/gCodeViewer/issues</a><br />
+                        And I would appreciate if you like it on Thingiverse page: <a href="http://www.thingiverse.com/thing:35248">http://www.thingiverse.com/thing:35248</a><br />
                     </div>
 
                 </div>
@@ -265,6 +262,14 @@
 </div>
 <script>
     window.onload = GCODE.ui.initHandlers;
+</script>
+
+<script type="text/javascript">
+    (function() {
+        var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+        po.src = 'https://apis.google.com/js/plusone.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+    })();
 </script>
 
 </body>
