@@ -410,6 +410,12 @@ GCODE.renderer = (function(){
             offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
             offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-gridSizeY/2*zoomFactor;
             if(ctx)ctx.translate(offsetModelX, offsetModelY);
+            var scaleF = mdlInfo.modelSize.x>mdlInfo.modelSize.y?(canvas.width)/mdlInfo.modelSize.x/zoomFactor:(canvas.height)/mdlInfo.modelSize.y/zoomFactor;
+            var pt = ctx.transformedPoint(canvas.width/2,canvas.height/2);
+            ctx.translate(pt.x,pt.y);
+            ctx.scale(0.8*scaleF,0.8*scaleF);
+            ctx.translate(-pt.x,-pt.y);
+//            ctx.scale(scaleF,scaleF);
             this.render(layerNum, 0, model[layerNum].length);
         },
         getZ: function(layerNum){
