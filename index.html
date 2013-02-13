@@ -176,7 +176,8 @@
                         <label for="moveModelCheckbox"><input type="checkbox" id="moveModelCheckbox" value="3"  onclick="GCODE.ui.processOptions()" checked> Move model to the center of the grid</label>
                         <label for="differentiateColorsCheckbox"><input type="checkbox" id="differentiateColorsCheckbox" value="7"  onclick="GCODE.ui.processOptions()" checked> Show different speeds with different colors</label>
                         <label for="thickExtrusionCheckbox"><input type="checkbox" id="thickExtrusionCheckbox" value="8"  onclick="GCODE.ui.processOptions()"> Emulate extrusion width</label>
-                        <label for="widthModifier">Width modifier: <input type="text" value="2" id="widthModifier" onchange="GCODE.ui.processOptions()"/></label>
+                        <label for="alphaCheckbox"><input type="checkbox" id="alphaCheckbox" value="10"  onclick="GCODE.ui.processOptions()" > Render lines slightly transparent</label>
+                        <!--<label for="widthModifier">Width modifier: <input type="text" value="2" id="widthModifier" onchange="GCODE.ui.processOptions()"/></label>-->
                         <label for="showNextLayer"><input type="checkbox" id="showNextLayer" value="9"  onclick="GCODE.ui.processOptions()" > Show +1 layer</label>
                     </div>
                 </div>
@@ -251,8 +252,9 @@
                                     <li>Show retracts and restarts</li>
                                     <li>Show print/move/retract speeds</li>
                                     <li>Display only part of layer, animate sequence of layer printing</li>
-                                    <li><b>NEW!!</b> Show two layers simultaneously so you can check overhangs</li>
-                                    <li><b>NEW!!</b> Adjust line width to simulate print more closely</li>
+                                    <li>Show two layers simultaneously so you can check overhangs</li>
+                                    <li>Adjust line width to simulate print more closely</li>
+                                    <li><b>Gcode viewer will try to parse nozzle and filament diameters from gcode, but it may fail to do so. In that case you will need to set it manually in 'Printer Info' tab</b></li>
                                 </ul>
                             </li>
                             <li>Analyze GCode

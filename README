@@ -1,1 +1,5 @@
-gCodeVisualizer - a web-based visual gcode analyzer
+gCodeVisualizer - a web-based visual gcode viewer and analyzer.
+Available online at http://gcode.ws/
+
+If you want to use it locally with chrome - you will need to add "--allow-file-access-from-files" command line parameter,
+which is unsafe (and you should never browse internet with that option "on").

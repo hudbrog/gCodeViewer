@@ -37,7 +37,9 @@ GCODE.renderer = (function(){
         modelCenter: {x: 0, y: 0},
         moveModel: true,
         differentiateColors: true,
-        showNextLayer: false
+        showNextLayer: false,
+        alpha: false,
+        actualWidth: false
     };
 
     var offsetModelX=0, offsetModelY=0;
@@ -46,10 +48,15 @@ GCODE.renderer = (function(){
 
 
     var reRender = function(){
+        var gCodeOpts = GCODE.gCodeReader.getOptions();
         var p1 = ctx.transformedPoint(0,0);
         var p2 = ctx.transformedPoint(canvas.width,canvas.height);
         ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
         drawGrid();
+        if(renderOptions['alpha']){ctx.globalAlpha = 0.6;}
+        else {ctx.globalAlpha = 1;}
+        if(renderOptions['actualWidth']){renderOptions['extrusionWidth'] = gCodeOpts['filamentDia']*gCodeOpts['wh']/zoomFactor;}
+        else {renderOptions['extrusionWidth'] = gCodeOpts['filamentDia']*gCodeOpts['wh']/zoomFactor/2;}
         if(renderOptions['showNextLayer'] && layerNumStore < model.length - 1) {
             drawLayer(layerNumStore+1, 0, GCODE.renderer.getLayerNumSegments(layerNumStore+1), true);
         }
@@ -355,6 +362,7 @@ GCODE.renderer = (function(){
             return model;
         },
         render: function(layerNum, fromProgress, toProgress){
+            var gCodeOpts = GCODE.gCodeReader.getOptions();
             if(!initialized)this.init();
             if(!model){
                 drawGrid();
@@ -364,7 +372,10 @@ GCODE.renderer = (function(){
                     var p2 = ctx.transformedPoint(canvas.width,canvas.height);
                     ctx.clearRect(p1.x,p1.y,p2.x-p1.x,p2.y-p1.y);
                     drawGrid();
-//                    ctx.globalAlpha = 0.5;
+                    if(renderOptions['alpha']){ctx.globalAlpha = 0.6;}
+                    else {ctx.globalAlpha = 1;}
+                    if(renderOptions['actualWidth']){renderOptions['extrusionWidth'] = gCodeOpts['filamentDia']*gCodeOpts['wh']/zoomFactor;}
+                    else {renderOptions['extrusionWidth'] = gCodeOpts['filamentDia']*gCodeOpts['wh']/zoomFactor/2;}
                     if(renderOptions['showNextLayer'] && layerNum < model.length - 1) {
                         drawLayer(layerNum+1, 0, this.getLayerNumSegments(layerNum+1), true);
                     }
@@ -399,7 +410,6 @@ GCODE.renderer = (function(){
             offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
             offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-gridSizeY/2*zoomFactor;
             if(ctx)ctx.translate(offsetModelX, offsetModelY);
-
             this.render(layerNum, 0, model[layerNum].length);
         },
         getZ: function(layerNum){

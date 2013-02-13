@@ -21,6 +21,7 @@ GCODE.gCodeReader = (function(){
     var layerCnt = 0;
     var layerTotal = 0;
     var speeds = {};
+    var slicer = 'unknown';
     var speedsByLayer = {};
     var gCodeOptions = {
         sortLayers: false,
@@ -88,6 +89,69 @@ GCODE.gCodeReader = (function(){
         }
     };
 
+    var getParamsFromKISSlicer = function(gcode){
+        var nozzle = gcode.match(/extrusion_width_mm\s*=\s*(\d*\.\d+)/m);
+        if(nozzle){
+            gCodeOptions['nozzleDia'] = nozzle[1];
+        }
+        var filament = gcode.match(/fiber_dia_mm\s*=\s*(\d*\.\d+)/m);
+        if(filament){
+            gCodeOptions['filamentDia'] = filament[1];
+        }
+    }
+
+    var getParamsFromSlic3r = function(gcode){
+        var nozzle = gcode.match(/nozzle_diameter\s*=\s*(\d*\.\d+)/m);
+        if(nozzle){
+            gCodeOptions['nozzleDia'] = nozzle[1];
+        }
+        var filament = gcode.match(/filament_diameter\s*=\s*(\d*\.\d+)/m);
+        if(filament){
+            gCodeOptions['filamentDia'] = filament[1];
+        }
+    }
+
+    var getParamsFromSkeinforge =function(gcode){
+
+        var nozzle = gcode.match(/nozzle_diameter\s*=\s*(\d*\.\d+)/m);
+        if(nozzle){
+            gCodeOptions['nozzleDia'] = nozzle[1];
+        }
+        var filament = gcode.match(/Filament_Diameter_(mm)\s*:\s*(\d*\.\d+)/m);
+        if(filament){
+            gCodeOptions['filamentDia'] = filament[1];
+        }
+    }
+
+    var getParamsFromMiracleGrue = function(gcode){
+
+    }
+
+    var getParamsFromCura = function(gcode){
+
+    }
+
+    var detectSlicer = function(gcode){
+
+        if(gcode.match(/Slic3r/)){
+            slicer = 'Slic3r';
+            getParamsFromSlic3r(gcode);
+        }else if(gcode.match(/KISSlicer/)){
+            slicer = 'KISSlicer';
+            getParamsFromKISSlicer(gcode);
+        }else if(gcode.match(/skeinforge/)){
+            slicer = 'skeinforge';
+            getParamsFromSkeinforge(gcode);
+        }else if(gcode.match(/Cura/)){
+            slicer = 'cura';
+            getParamsFromCura(gcode);
+        }else if(gcode.match(/Miracle/)){
+            slicer = 'makerbot';
+            getParamsFromMiracleGrue(gcode);
+        }
+
+    }
+
 
 
 // ***** PUBLIC *******
@@ -97,7 +161,7 @@ GCODE.gCodeReader = (function(){
 //            console.log("loadFile");
             model = [];
             z_heights = [];
-
+            detectSlicer(reader.target.result);
             lines = reader.target.result.split(/\n/);
             reader.target.result = null;
 //            prepareGCode();
@@ -170,6 +234,13 @@ GCODE.gCodeReader = (function(){
                 density = 1.24;
             }
             totalWeight = 3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4*totalFilament/10;
+
+            gCodeOptions['wh'] = parseFloat(gCodeOptions['nozzleDia'])/parseFloat(layerHeight);
+            if(slicer === 'Slic3r'){
+                // slic3r stores actual nozzle diameter, but extrusion is usually slightly thicker, here we compensate for that
+                // kissslicer stores actual extrusion width - so no need for that.
+                gCodeOptions['wh'] = gCodeOptions['wh']*1.1;
+            }
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];

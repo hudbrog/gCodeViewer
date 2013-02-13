@@ -220,6 +220,7 @@ GCODE.ui = (function(){
                 printModelInfo();
                 printLayerInfo(0);
                 chooseAccordion('infoAccordionTab');
+                GCODE.ui.updateOptions();
                 $('#myTab').find('a[href="#tab2d"]').tab('show');
                 break;
             case 'returnLayer':
@@ -347,10 +348,11 @@ GCODE.ui = (function(){
             if(document.getElementById('differentiateColorsCheckbox').checked)GCODE.renderer.setOption({differentiateColors: true});
             else GCODE.renderer.setOption({differentiateColors: false});
 
-            var widthMod = 2;
-            if(Number($('#widthModifier').attr('value'))) {widthMod = Number($('#widthModifier').attr('value'));}
-            if(document.getElementById('thickExtrusionCheckbox').checked)GCODE.renderer.setOption({extrusionWidth: widthMod});
-            else GCODE.renderer.setOption({extrusionWidth: 1});
+            if(document.getElementById('thickExtrusionCheckbox').checked)GCODE.renderer.setOption({actualWidth: true});
+            else GCODE.renderer.setOption({actualWidth: false});
+
+            if(document.getElementById('alphaCheckbox').checked)GCODE.renderer.setOption({alpha: true});
+            else GCODE.renderer.setOption({alpha: false});
 
             if(document.getElementById('showNextLayer').checked)GCODE.renderer.setOption({showNextLayer: true});
             else GCODE.renderer.setOption({showNextLayer: false});
@@ -365,6 +367,13 @@ GCODE.ui = (function(){
 
             if(document.getElementById('plasticABS').checked)GCODE.gCodeReader.setOption({filamentType: "ABS"});
             if(document.getElementById('plasticPLA').checked)GCODE.gCodeReader.setOption({filamentType: "PLA"});
+        },
+
+        updateOptions: function(){
+            var gcodeOptions = GCODE.gCodeReader.getOptions();
+
+            document.getElementById('nozzleDia').value = gcodeOptions['nozzleDia'];
+            document.getElementById('filamentDia').value = gcodeOptions['filamentDia'];
         }
     }
 }());
