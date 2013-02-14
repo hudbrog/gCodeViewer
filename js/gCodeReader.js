@@ -128,7 +128,30 @@ GCODE.gCodeReader = (function(){
     }
 
     var getParamsFromCura = function(gcode){
+//        console.log("cura");
+        var profileString = gcode.match(/CURA_PROFILE_STRING:((?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4}))/m);
+        if(profileString){
+            var raw = window.atob(profileString[1]);
+            var array = new Uint8Array(new ArrayBuffer(raw.length));
 
+            for(i = 0; i < raw.length; i++) {
+                array[i] = raw.charCodeAt(i);
+            }
+            var data = new Zlib.inflate(array.subarray(2, array.byteLength-4));
+            var msg;
+            for(i=0; i < data.length; i+=1) {
+                msg+=String.fromCharCode(data[i]);
+            }
+            var nozzle = msg.match(/nozzle_size\s*=\s*(\d*\.\d+)/m);
+            if(nozzle){
+                gCodeOptions['nozzleDia'] = nozzle[1];
+            }
+            var filament = msg.match(/filament_diameter\s*=\s*(\d*\.\d+)/m);
+            if(filament){
+                gCodeOptions['filamentDia'] = filament[1];
+            }
+
+        }
     }
 
     var detectSlicer = function(gcode){
@@ -142,7 +165,7 @@ GCODE.gCodeReader = (function(){
         }else if(gcode.match(/skeinforge/)){
             slicer = 'skeinforge';
             getParamsFromSkeinforge(gcode);
-        }else if(gcode.match(/Cura/)){
+        }else if(gcode.match(/CURA_PROFILE_STRING/)){
             slicer = 'cura';
             getParamsFromCura(gcode);
         }else if(gcode.match(/Miracle/)){
