@@ -224,7 +224,7 @@ GCODE.renderer = (function(){
             prevX = cmds[fromProgress-1].x*zoomFactor;
             prevY = -cmds[fromProgress-1].y*zoomFactor;
         }else if(fromProgress===0 && layerNum==0){
-            if(model[0]&&model[0].x !== undefined &&model[0].y !== undefined){
+            if(model[0]&&typeof(model[0].x) !== 'undefined' && typeof(model[0].y) !== 'undefined'){
                 prevX = model[0].x*zoomFactor;
                 prevY = -model[0].y*zoomFactor;
             }else {
@@ -239,11 +239,11 @@ GCODE.renderer = (function(){
                 prevX=undefined;
                 prevY=undefined;
                 for(i=model[layerNum-1].length-1;i>=0;i--){
-                    if(prevX === undefined && model[layerNum-1][i].x!==undefined)prevX=model[layerNum-1][i].x*zoomFactor;
-                    if(prevY === undefined && model[layerNum-1][i].y!==undefined)prevY=-model[layerNum-1][i].y*zoomFactor;
+                    if(typeof(prevX) === 'undefined' && model[layerNum-1][i].x!==undefined)prevX=model[layerNum-1][i].x*zoomFactor;
+                    if(typeof(prevY) === 'undefined' && model[layerNum-1][i].y!==undefined)prevY=-model[layerNum-1][i].y*zoomFactor;
                 }
-                if(prevX === undefined)prevX=0;
-                if(prevY === undefined)prevY=0;
+                if(typeof(prevX) === 'undefined')prevX=0;
+                if(typeof(prevY) === 'undefined')prevY=0;
             }else{
                 prevX=0;
                 prevY=0;
