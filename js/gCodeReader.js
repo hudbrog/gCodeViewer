@@ -259,7 +259,7 @@ GCODE.gCodeReader = (function(){
             totalWeight = 3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4*totalFilament/10;
 
             gCodeOptions['wh'] = parseFloat(gCodeOptions['nozzleDia'])/parseFloat(layerHeight);
-            if(slicer === 'Slic3r'){
+            if(slicer === 'Slic3r' || slicer === 'cura'){
                 // slic3r stores actual nozzle diameter, but extrusion is usually slightly thicker, here we compensate for that
                 // kissslicer stores actual extrusion width - so no need for that.
                 gCodeOptions['wh'] = gCodeOptions['wh']*1.1;
