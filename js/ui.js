@@ -222,6 +222,7 @@ GCODE.ui = (function(){
                 chooseAccordion('infoAccordionTab');
                 GCODE.ui.updateOptions();
                 $('#myTab').find('a[href="#tab2d"]').tab('show');
+                $('#runAnalysisButton').removeClass('disabled');
                 break;
             case 'returnLayer':
                 GCODE.gCodeReader.processLayerFromWorker(data.msg);
@@ -325,6 +326,12 @@ GCODE.ui = (function(){
 //            console.log(myCodeMirror);
             chooseAccordion('fileAccordionTab');
 
+            (function() {
+                var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                    window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+                window.requestAnimationFrame = requestAnimationFrame;
+            })();
+
         },
 
         processOptions: function(){
@@ -356,6 +363,9 @@ GCODE.ui = (function(){
 
             if(document.getElementById('showNextLayer').checked)GCODE.renderer.setOption({showNextLayer: true});
             else GCODE.renderer.setOption({showNextLayer: false});
+
+            if(document.getElementById('renderErrors').checked)GCODE.renderer.setOption({renderErrors: true});
+            else GCODE.renderer.setOption({renderErrors: false});
 
             var filamentDia = 1.75;
             if(Number($('#filamentDia').attr('value'))) {filamentDia = Number($('#filamentDia').attr('value'));}

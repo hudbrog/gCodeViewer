@@ -65,9 +65,18 @@
     fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 
-<div id="dialog-modal" title="Basic modal dialog" style="display: none;">
-    Generating 3d model<br />
-    <div id="progressbar"></div>
+<div id="analysisModal" class="modal hide fade">
+    <div class="modal-header">
+        <h3>Running analysis....</h3>
+    </div>
+    <div class="modal-body">
+        <div class="progress" >
+            <div id="analysisProgress" class="bar" style="width: 0;"></div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <a href="#" class="btn disabled">Please wait for process to get finished</a>
+    </div>
 </div>
 
 <div class="navbar navbar-fixed-top">
@@ -217,6 +226,23 @@
                     </div>
                 </div>
             </div>
+
+            <div class="accordion-group">
+                <div class="accordion-heading">
+                    <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#errorAnalysisAccordioinTab">
+                        Error Analysis
+                    </a>
+                </div>
+                <div id="errorAnalysisAccordioinTab" class="accordion-body collapse">
+                    <div class="accordion-inner">
+                        <button class="btn disabled" id="runAnalysisButton" onclick="GCODE.analyzer.runAnalyze()"/>Run analysis</button>
+                        <div id="analysisOptionsDiv" class="hide">
+                            <label for="renderErrors"><input type="checkbox" id="renderErrors" onclick="GCODE.ui.processOptions()">Render error analysis results</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
 
         </div>
         <output id="errorList"></output>

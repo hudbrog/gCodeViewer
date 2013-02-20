@@ -39,7 +39,8 @@ GCODE.renderer = (function(){
         differentiateColors: true,
         showNextLayer: false,
         alpha: false,
-        actualWidth: false
+        actualWidth: false,
+        renderErrors: false
     };
 
     var offsetModelX=0, offsetModelY=0;
@@ -267,7 +268,7 @@ GCODE.renderer = (function(){
             else x = cmds[i].x;
             if(typeof(cmds[i].y) === 'undefined'||isNaN(cmds[i].y))y=prevY/zoomFactor;
             else y = -cmds[i].y;
-            if(renderOptions["differentiateColors"]&&!renderOptions['showNextLayer']){
+            if(renderOptions["differentiateColors"]&&!renderOptions['showNextLayer']&&!renderOptions['renderErrors']){
 //                if(speedsByLayer['extrude'][prevZ]){
                     speedIndex = speeds['extrude'].indexOf(cmds[i].speed);
 //                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer['extrude'][prevZ], function(obj) {return obj.speed === cmds[i].speed;});
@@ -282,6 +283,12 @@ GCODE.renderer = (function(){
                 }
             }else if(renderOptions['showNextLayer']&&isNextLayer){
                 speedIndex=3;
+            }else if(renderOptions['renderErrors']){
+                if(cmds[i].error < 1){
+                    speedIndex=3;
+                }else{
+                    speedIndex=0;
+                }
             }else{
                 speedIndex=0;
             }
