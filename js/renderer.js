@@ -357,7 +357,7 @@ GCODE.renderer = (function(){
         init: function(){
             startCanvas();
             initialized = true;
-            ctx.translate(30,gridSizeY*zoomFactor+20);
+            ctx.translate((canvas.width - gridSizeX*zoomFactor)/2,gridSizeY*zoomFactor+(canvas.height - gridSizeY*zoomFactor)/2);
         },
         setOption: function(options){
             for(var opt in options){
@@ -426,8 +426,10 @@ GCODE.renderer = (function(){
             if(ctx)ctx.translate(offsetModelX, offsetModelY);
             var scaleF = mdlInfo.modelSize.x>mdlInfo.modelSize.y?(canvas.width)/mdlInfo.modelSize.x/zoomFactor:(canvas.height)/mdlInfo.modelSize.y/zoomFactor;
             var pt = ctx.transformedPoint(canvas.width/2,canvas.height/2);
+            var transform = ctx.getTransform();
+            var sX = scaleF/transform.a, sY = scaleF/transform.d;
             ctx.translate(pt.x,pt.y);
-            ctx.scale(0.8*scaleF,0.8*scaleF);
+            ctx.scale(0.98*sX,0.98*sY);
             ctx.translate(-pt.x,-pt.y);
 //            ctx.scale(scaleF,scaleF);
             this.render(layerNum, 0, model[layerNum].length);
