@@ -29,7 +29,8 @@ GCODE.renderer = (function(){
         colorGrid: "#bbbbbb",
         extrusionWidth: 1,
 //        colorLine: ["#000000", "#aabb88",  "#ffe7a0", "#6e7700", "#331a00", "#44ba97", "#08262f", "#db0e00", "#ff9977"],
-        colorLine: ["#000000", "#45c7ba",  "#a9533a", "#ff44cc", "#dd1177", "#eeee22", "#ffbb55", "#ff5511", "#777788"],
+        colorLine: ["#000000", "#45c7ba",  "#a9533a", "#ff44cc", "#dd1177", "#eeee22", "#ffbb55", "#ff5511", "#777788", "#ff0000", "#ffff00"],
+        colorLineLen: 9,
         colorMove: "#00ff00",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
@@ -277,15 +278,18 @@ GCODE.renderer = (function(){
 //                }
                 if(speedIndex === -1){
                     speedIndex = 0;
-                }else if(speedIndex > renderOptions["colorLine"].length -1){
-                    speedIndex = speedIndex % (renderOptions["colorLine"].length-1);
+                }else if(speedIndex > renderOptions["colorLineLen"] -1){
+                    speedIndex = speedIndex % (renderOptions["colorLineLen"]-1);
     //                console.log("Too much colors");
                 }
             }else if(renderOptions['showNextLayer']&&isNextLayer){
                 speedIndex=3;
             }else if(renderOptions['renderErrors']){
-                if(cmds[i].error < 1){
-                    speedIndex=3;
+                if(cmds[i].errType === 2){
+                    speedIndex=9;
+//                    console.log("l: " + layerNum + " c: " + i);
+                }else if(cmds[i].errType === 1){
+                    speedIndex=10;
                 }else{
                     speedIndex=0;
                 }
@@ -357,7 +361,10 @@ GCODE.renderer = (function(){
         },
         setOption: function(options){
             for(var opt in options){
-                if(options.hasOwnProperty(opt))renderOptions[opt] = options[opt];
+                if(options.hasOwnProperty(opt)){
+                    renderOptions[opt] = options[opt];
+//                    console.log("Got a set option call: " + opt + " == " + options[opt]);
+                }
             };
 
             if(initialized)reRender();

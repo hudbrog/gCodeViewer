@@ -13,7 +13,7 @@ GCODE.analyzer = (function(){
 
     var saveOptions = function(){
         savedRenderOptions = $.extend({}, GCODE.renderer.getOptions());
-        console.log(savedRenderOptions);
+//        console.log(savedRenderOptions);
     }
 
     var restoreOptions = function(){
@@ -37,6 +37,7 @@ GCODE.analyzer = (function(){
         GCODE.renderer.setOption({differentiateColors: false});
         GCODE.renderer.setOption({showNextLayer: false});
         GCODE.renderer.setOption({colorGrid: "#ffffff"});
+//        console.log(GCODE.renderer.getOptions());
     }
 
     var multiplyPoint = function(point) {
@@ -68,7 +69,7 @@ GCODE.analyzer = (function(){
         res += checkPoint(imgData, {x: p.x-r, y: p.y  });
         res += checkPoint(imgData, {x: p.x  , y: p.y+r});
         res += checkPoint(imgData, {x: p.x  , y: p.y-r});
-        r = parseInt(r*0.7);
+        r = parseInt(r*0.7)===0?1:parseInt(r*0.7);
         res += checkPoint(imgData, {x: p.x+r, y: p.y-r});
         res += checkPoint(imgData, {x: p.x+r, y: p.y+r});
         res += checkPoint(imgData, {x: p.x-r, y: p.y-r});
@@ -103,8 +104,12 @@ GCODE.analyzer = (function(){
 
                 if(cmds[i].extrude){
 //                    var result = checkArea(imgData, {x: prevX, y: prevY});
-                    var result = checkArea(imgData, {x: x, y: y});
-                    model[layerNum][i].error = result;
+                    var r2 = checkArea(imgData, {x: x, y: y});
+                    var r1 = checkArea(imgData, {x: prevX, y: prevY});
+                    var result = r1+r2;
+                    model[layerNum][i].error = r1+r2;
+                    model[layerNum][i].errType = r1===0&&r2===0?2:(r1===0||r2===0?1:0);
+
 //                    var index = (p.x + p.y * imgData.width) * 4;
 //                    console.log(index);
 //                    console.log("x: " + x + " y: " + y);
@@ -124,12 +129,12 @@ GCODE.analyzer = (function(){
                             longestErrStreak = errStreak;
                         }
 
-                        ctx.strokeStyle = "#ff0000";
-                        ctx.fillStyle = "#ff0000";
-                        ctx.beginPath();
-                        ctx.arc(x, y, 0.2, 0, Math.PI*2, true);
-                        ctx.stroke();
-                        ctx.fill();
+//                        ctx.strokeStyle = "#ff0000";
+//                        ctx.fillStyle = "#ff0000";
+//                        ctx.beginPath();
+//                        ctx.arc(x, y, 0.2, 0, Math.PI*2, true);
+//                        ctx.stroke();
+//                        ctx.fill();
                     }else if (result >0 && result < 3){
 //                        if(lastErrCmd == i-1) {
 //                            errStreak++;
@@ -141,12 +146,12 @@ GCODE.analyzer = (function(){
 //                            longestErrStreak = errStreak;
 //                        }
 
-                        ctx.strokeStyle = "#00ff00";
-                        ctx.fillStyle = "#00ff00";
-                        ctx.beginPath();
-                        ctx.arc(x, y, 0.2, 0, Math.PI*2, true);
-                        ctx.stroke();
-                        ctx.fill();
+//                        ctx.strokeStyle = "#00ff00";
+//                        ctx.fillStyle = "#00ff00";
+//                        ctx.beginPath();
+//                        ctx.arc(x, y, 0.2, 0, Math.PI*2, true);
+//                        ctx.stroke();
+//                        ctx.fill();
                     }
                 }
             }
@@ -218,14 +223,11 @@ GCODE.analyzer = (function(){
         runAnalyze: function(){
             init();
             analyzeCycle();
-            restoreOptions();
+//            restoreOptions();
         },
-        doAnalyze: function(){
+        analyzeOnce: function(layerNum){
             init();
-            if(analyzeCycle()){
-                console.log("Model is totally printable!!");
-                restoreOptions();
-            }
+            analyze(layerNum);
         },
         restoreRenderer: function(){
             restoreOptions();
