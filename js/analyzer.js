@@ -37,6 +37,7 @@ GCODE.analyzer = (function(){
         GCODE.renderer.setOption({differentiateColors: false});
         GCODE.renderer.setOption({showNextLayer: false});
         GCODE.renderer.setOption({colorGrid: "#ffffff"});
+        GCODE.renderer.setOption({renderAnalysis: true});
 //        console.log(GCODE.renderer.getOptions());
     }
 
@@ -48,16 +49,17 @@ GCODE.analyzer = (function(){
     }
 
     var checkPoint = function(imgData, p) {
-//        console.log(imgData.data[(p.x+ p.y * imgData.width) * 4]);
-//        console.log(imgData.data[(p.x+ p.y * imgData.width) * 4+3]);
-        if (imgData.data[(p.x+ p.y * imgData.width) * 4] < 100 && imgData.data[(p.x+ p.y * imgData.width) * 4+3] > 100) {
-//            imgData.data[(p.x+ p.y * imgData.width) * 4] = 255;
-            return 1;
+//        if (imgData.data[(p.x+ p.y * imgData.width) * 4] < 100 && imgData.data[(p.x+ p.y * imgData.width) * 4+3] > 100) {
+//            return 1;
+//        } else {
+//            return 0;
+//        }
+        if (imgData.data[(p.x+ p.y * imgData.width) * 4+3] > 100) {
+            return imgData.data[(p.x+ p.y * imgData.width) * 4];
         } else {
-//            imgData.data[(p.x+ p.y * imgData.width) * 4] = 0;
-//            imgData.data[(p.x+ p.y * imgData.width) * 4+1] = 0;
-            return 0;
+            return 255;
         }
+
     }
 
     var checkArea = function(imgData, pnt) {
@@ -74,6 +76,8 @@ GCODE.analyzer = (function(){
         res += checkPoint(imgData, {x: p.x+r, y: p.y+r});
         res += checkPoint(imgData, {x: p.x-r, y: p.y-r});
         res += checkPoint(imgData, {x: p.x-r, y: p.y+r});
+
+        res = res/9;
 
         return res;
 //        return checkPoint(imgData, p)===1?true:false;
@@ -106,8 +110,8 @@ GCODE.analyzer = (function(){
 //                    var result = checkArea(imgData, {x: prevX, y: prevY});
                     var r2 = checkArea(imgData, {x: x, y: y});
                     var r1 = checkArea(imgData, {x: prevX, y: prevY});
-                    var result = r1+r2;
-                    model[layerNum][i].error = r1+r2;
+                    var result = r2;
+                    model[layerNum][i].errLevel = result<197?0:result-64;
                     model[layerNum][i].errType = r1===0&&r2===0?2:(r1===0||r2===0?1:0);
 
 //                    var index = (p.x + p.y * imgData.width) * 4;

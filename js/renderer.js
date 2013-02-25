@@ -41,7 +41,8 @@ GCODE.renderer = (function(){
         showNextLayer: false,
         alpha: false,
         actualWidth: false,
-        renderErrors: false
+        renderErrors: false,
+        renderAnalysis: false
     };
 
     var offsetModelX=0, offsetModelY=0;
@@ -269,7 +270,7 @@ GCODE.renderer = (function(){
             else x = cmds[i].x;
             if(typeof(cmds[i].y) === 'undefined'||isNaN(cmds[i].y))y=prevY/zoomFactor;
             else y = -cmds[i].y;
-            if(renderOptions["differentiateColors"]&&!renderOptions['showNextLayer']&&!renderOptions['renderErrors']){
+            if(renderOptions["differentiateColors"]&&!renderOptions['showNextLayer']&&!renderOptions['renderAnalysis']){
 //                if(speedsByLayer['extrude'][prevZ]){
                     speedIndex = speeds['extrude'].indexOf(cmds[i].speed);
 //                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer['extrude'][prevZ], function(obj) {return obj.speed === cmds[i].speed;});
@@ -293,6 +294,14 @@ GCODE.renderer = (function(){
                 }else{
                     speedIndex=0;
                 }
+            }else if(renderOptions['renderAnalysis']){
+//                if(cmds[i].errType === 2){
+//                    speedIndex=-1;
+//                }else{
+//                    speedIndex=0;
+//                }
+                if(layerNum !== 0)speedIndex = -1;
+                else speedIndex=0;
             }else{
                 speedIndex=0;
             }
@@ -325,7 +334,14 @@ GCODE.renderer = (function(){
             }
             else if(cmds[i].extrude){
                 if(cmds[i].retract==0){
-                    ctx.strokeStyle = renderOptions["colorLine"][speedIndex];
+                    if(speedIndex>=0){
+                        ctx.strokeStyle = renderOptions["colorLine"][speedIndex];
+                    }else if(speedIndex===-1){
+                        var val = parseInt(cmds[i].errLevel).toString(16);
+                        var cr = "#" + "00".substr(0,2-val.length) + val + '0000';
+                        if(renderOptions['showMoves'])console.log(cr);
+                        ctx.strokeStyle = cr;
+                    }
                     ctx.lineWidth = renderOptions['extrusionWidth'];
                     ctx.beginPath();
                     ctx.moveTo(prevX, prevY);
