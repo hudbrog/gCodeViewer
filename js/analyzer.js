@@ -10,6 +10,7 @@ GCODE.analyzer = (function(){
     var canvas, ctx, transform;
     var lastAnalyzedLayer=-1;
     var initialized = false;
+    var usableLevel = 190, stepLevel=30;
 
     var saveOptions = function(){
         savedRenderOptions = $.extend({}, GCODE.renderer.getOptions());
@@ -49,11 +50,6 @@ GCODE.analyzer = (function(){
     }
 
     var checkPoint = function(imgData, p) {
-//        if (imgData.data[(p.x+ p.y * imgData.width) * 4] < 100 && imgData.data[(p.x+ p.y * imgData.width) * 4+3] > 100) {
-//            return 1;
-//        } else {
-//            return 0;
-//        }
         if (imgData.data[(p.x+ p.y * imgData.width) * 4+3] > 100) {
             return imgData.data[(p.x+ p.y * imgData.width) * 4];
         } else {
@@ -81,7 +77,51 @@ GCODE.analyzer = (function(){
 
         return res;
 //        return checkPoint(imgData, p)===1?true:false;
+    }
 
+    var checkArea2 = function(imgData, pnt) {
+        var r = parseInt(dia/2)+1;
+        var res = 0, p = pnt;
+
+        res += checkPoint(imgData, {x: p.x  , y: p.y  });
+        res += checkPoint(imgData, {x: p.x+r, y: p.y  });
+        res += checkPoint(imgData, {x: p.x-r, y: p.y  });
+        res += checkPoint(imgData, {x: p.x  , y: p.y+r});
+        res += checkPoint(imgData, {x: p.x  , y: p.y-r});
+        r = parseInt(r*0.7)===0?1:parseInt(r*0.7);
+        res += checkPoint(imgData, {x: p.x+r, y: p.y-r});
+        res += checkPoint(imgData, {x: p.x+r, y: p.y+r});
+        res += checkPoint(imgData, {x: p.x-r, y: p.y-r});
+        res += checkPoint(imgData, {x: p.x-r, y: p.y+r});
+
+        res = res/9;
+
+        return res;
+//        return checkPoint(imgData, p)===1?true:false;
+    }
+
+
+    var findNearestPoint = function(imgData, x,y,lastX,lastY){
+        var len = [], stepCnt = [], step = [];
+        var p0 = multiplyPoint({x:lastX, y:lastY});
+        var p = multiplyPoint({x:x,y:y});
+        len[0] = parseInt(p.x - p0.x);
+        len[1] = parseInt(p.y - p0.y);
+//        len[2] = Math.sqrt(xlen*xlen + ylen*ylen);
+        stepCnt[0] = Math.abs(len[0]/(dia*0.7));
+        stepCnt[1] = Math.abs(len[1]/(dia*0.7));
+        var index = Math.abs(len[0])<Math.abs(len[1])?1:0;
+        step[0] = len[0]/stepCnt[index];
+        step[1] = len[1]/stepCnt[index];
+        stepCnt[index] = parseInt(stepCnt[index])+1;
+        for(var i=2;i<stepCnt[index];i++){
+            var p1 = {x:parseInt(p.x-step[0]*i),y:parseInt(p.y-step[1]*i)};
+            var res = checkPoint(imgData, p1);
+            if(res<usableLevel){
+                return i/stepCnt[index];
+            }
+        }
+        return 1;
     }
 
     var drawLineEnds = function(layerNum){
@@ -108,12 +148,26 @@ GCODE.analyzer = (function(){
 
                 if(cmds[i].extrude){
 //                    var result = checkArea(imgData, {x: prevX, y: prevY});
+//                    if(layerNum==10){
+//                        var pngUrl = canvas.toDataURL();
+//                        document.write('<img src="'+pngUrl+'"/>');
+//                    }
                     var r2 = checkArea(imgData, {x: x, y: y});
                     var r1 = checkArea(imgData, {x: prevX, y: prevY});
-                    var result = r2;
-                    model[layerNum][i].errLevel = result<197?0:result-64;
-                    model[layerNum][i].errType = r1===0&&r2===0?2:(r1===0||r2===0?1:0);
-
+                    var result = (r2+r1)/2;
+                    model[layerNum][i].errLevelE = r2<usableLevel?0:r2-stepLevel;
+                    model[layerNum][i].errLevelB = r1<usableLevel?0:r1-stepLevel;
+                    if(r1<usableLevel&&r2<usableLevel)model[layerNum][i].errType=3;
+                    else if(r1<usableLevel)model[layerNum][i].errType=1;
+                    else if(r2<usableLevel)model[layerNum][i].errType=2;
+                    else model[layerNum][i].errType=0;
+//                    model[layerNum][i].errType = r1<usableLevel&&r2<usableLevel?2:(r1<usableLevel||r2<usableLevel?1:0);
+                    if(model[layerNum][i].errType===1){
+                        model[layerNum][i].errDelimiter = findNearestPoint(imgData, x, y, prevX, prevY);
+                    }else if(model[layerNum][i].errType===2){
+                        var tmp = findNearestPoint(imgData, prevX, prevY, x, y)
+                        model[layerNum][i].errDelimiter = tmp;
+                    }
 //                    var index = (p.x + p.y * imgData.width) * 4;
 //                    console.log(index);
 //                    console.log("x: " + x + " y: " + y);
@@ -159,7 +213,7 @@ GCODE.analyzer = (function(){
                     }
                 }
             }
-   //         ctx.putImageData(imgData, 0, 0);
+            ctx.putImageData(imgData, 0, 0);
         }
         return {errors: totalErr, longestStreak: longestErrStreak};
     }
@@ -182,6 +236,8 @@ GCODE.analyzer = (function(){
             $('#analysisModal').modal('hide');
             restoreOptions();
             $('#analysisOptionsDiv').removeClass('hide');
+            GCODE.ui.resetSliders();
+            GCODE.renderer.render(0,0,GCODE.renderer.getLayerNumSegments(0));
         }
 
     }
@@ -190,7 +246,8 @@ GCODE.analyzer = (function(){
         $('#analysisModal').modal('show');
 //        var i = lastAnalyzedLayer===-1?0:lastAnalyzedLayer+1;
         lastAnalyzedLayer = 0;
-        var numLayers = GCODE.renderer.getModelNumLayers();
+//        var numLayers = GCODE.renderer.getModelNumLayers();
+
         requestAnimationFrame(analyzeStep);
 //        for(;i<numLayers;i++){
 //            requestAnimationFrame(step);

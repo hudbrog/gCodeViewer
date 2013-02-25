@@ -384,6 +384,10 @@ GCODE.ui = (function(){
 
             document.getElementById('nozzleDia').value = gcodeOptions['nozzleDia'];
             document.getElementById('filamentDia').value = gcodeOptions['filamentDia'];
+        },
+
+        resetSliders: function(){
+            initSliders();
         }
     }
 }());

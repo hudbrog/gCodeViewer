@@ -337,10 +337,32 @@ GCODE.renderer = (function(){
                     if(speedIndex>=0){
                         ctx.strokeStyle = renderOptions["colorLine"][speedIndex];
                     }else if(speedIndex===-1){
-                        var val = parseInt(cmds[i].errLevel).toString(16);
-                        var cr = "#" + "00".substr(0,2-val.length) + val + '0000';
-                        if(renderOptions['showMoves'])console.log(cr);
-                        ctx.strokeStyle = cr;
+                        var val = parseInt(cmds[i].errLevelB).toString(16);
+//                        var val = '8A';
+                        var crB = "#" + "00".substr(0,2-val.length) + val + '0000';
+                        val = parseInt(cmds[i].errLevelE).toString(16);
+                        var crE = "#" + "00".substr(0,2-val.length) + val + '0000';
+//                        if(renderOptions['showMoves'])console.log(cr);
+                        var gradient = ctx.createLinearGradient(prevX, prevY, x*zoomFactor,y*zoomFactor);
+                        if(cmds[i].errType === 1){
+                            var limit = (1-cmds[i].errDelimiter);
+                            if (limit >= 0.99) limit = 0.99;
+                            gradient.addColorStop(0, "#000000");
+                            gradient.addColorStop(limit, "#000000");
+                            gradient.addColorStop(limit+0.01, crE);
+                            gradient.addColorStop(1, crE);
+                        }else if(cmds[i].errType === 2){
+                            gradient.addColorStop(0, crB);
+                            var limit = cmds[i].errDelimiter;
+                            if (limit >= 0.99) limit = 0.99;
+                            gradient.addColorStop(limit, crB);
+                            gradient.addColorStop(limit+0.01, "#000000");
+                            gradient.addColorStop(1, "#000000");
+                        }else{
+                            gradient.addColorStop(0, crB);
+                            gradient.addColorStop(1, crE);
+                        }
+                        ctx.strokeStyle = gradient;
                     }
                     ctx.lineWidth = renderOptions['extrusionWidth'];
                     ctx.beginPath();
