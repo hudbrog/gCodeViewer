@@ -332,6 +332,10 @@ GCODE.ui = (function(){
                 window.requestAnimationFrame = requestAnimationFrame;
             })();
 
+            if(window.location.search.match(/new/)){
+                $('#errAnalyseTab').removeClass('hide');
+            }
+
         },
 
         processOptions: function(){
@@ -364,7 +368,12 @@ GCODE.ui = (function(){
             if(document.getElementById('showNextLayer').checked)GCODE.renderer.setOption({showNextLayer: true});
             else GCODE.renderer.setOption({showNextLayer: false});
 
-            if(document.getElementById('renderErrors').checked)GCODE.renderer.setOption({renderAnalysis: true});
+            if(document.getElementById('renderErrors').checked){
+                GCODE.renderer.setOption({showMoves: false});
+                GCODE.renderer.setOption({showRetracts: false});
+                GCODE.renderer.setOption({renderAnalysis: true});
+                GCODE.renderer.setOption({actualWidth: true});
+            }
             else GCODE.renderer.setOption({renderAnalysis: false});
 
             var filamentDia = 1.75;

@@ -79,27 +79,6 @@ GCODE.analyzer = (function(){
 //        return checkPoint(imgData, p)===1?true:false;
     }
 
-    var checkArea2 = function(imgData, pnt) {
-        var r = parseInt(dia/2)+1;
-        var res = 0, p = pnt;
-
-        res += checkPoint(imgData, {x: p.x  , y: p.y  });
-        res += checkPoint(imgData, {x: p.x+r, y: p.y  });
-        res += checkPoint(imgData, {x: p.x-r, y: p.y  });
-        res += checkPoint(imgData, {x: p.x  , y: p.y+r});
-        res += checkPoint(imgData, {x: p.x  , y: p.y-r});
-        r = parseInt(r*0.7)===0?1:parseInt(r*0.7);
-        res += checkPoint(imgData, {x: p.x+r, y: p.y-r});
-        res += checkPoint(imgData, {x: p.x+r, y: p.y+r});
-        res += checkPoint(imgData, {x: p.x-r, y: p.y-r});
-        res += checkPoint(imgData, {x: p.x-r, y: p.y+r});
-
-        res = res/9;
-
-        return res;
-//        return checkPoint(imgData, p)===1?true:false;
-    }
-
 
     var findNearestPoint = function(imgData, x,y,lastX,lastY){
         var len = [], stepCnt = [], step = [];
