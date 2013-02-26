@@ -23,6 +23,10 @@ GCODE.gCodeReader = (function(){
     var speeds = {};
     var slicer = 'unknown';
     var speedsByLayer = {};
+    var volSpeeds = {};
+    var volSpeedsByLayer = {};
+    var extrusionSpeeds = {};
+    var extrusionSpeedsByLayer = {};
     var gCodeOptions = {
         sortLayers: false,
         purgeEmptyLayers: true,
@@ -249,6 +253,10 @@ GCODE.gCodeReader = (function(){
             layerHeight = msg.layerHeight;
             layerCnt = msg.layerCnt;
             layerTotal = msg.layerTotal;
+            volSpeeds = msg.volSpeeds;
+            volSpeedsByLayer = msg.volSpeedsByLayer;
+            extrusionSpeeds = msg.extrusionSpeeds;
+            extrusionSpeedsByLayer = msg.extrusionSpeedsByLayer;
 
             var density = 1;
             if(gCodeOptions['filamentType'] === 'ABS') {
@@ -256,7 +264,7 @@ GCODE.gCodeReader = (function(){
             }else if(gCodeOptions['filamentType'] === 'PLA') {
                 density = 1.24;
             }
-            totalWeight = 3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4*totalFilament/10;
+            totalWeight = density*3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4*totalFilament/10;
 
             gCodeOptions['wh'] = parseFloat(gCodeOptions['nozzleDia'])/parseFloat(layerHeight);
             if(slicer === 'Slic3r' || slicer === 'cura'){
@@ -284,7 +292,11 @@ GCODE.gCodeReader = (function(){
                 totalWeight: totalWeight,
                 layerHeight: layerHeight,
                 layerCnt: layerCnt,
-                layerTotal: layerTotal
+                layerTotal: layerTotal,
+                volSpeeds: volSpeeds,
+                volSpeedsByLayer: volSpeedsByLayer,
+                extrusionSpeeds: extrusionSpeeds,
+                extrusionSpeedsByLayer: extrusionSpeedsByLayer
             };
         },
         getGCodeLines: function(layer, fromSegments, toSegments){

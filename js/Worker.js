@@ -24,6 +24,10 @@
     var layerCnt = 0;
     var speeds = {extrude: [], retract: [], move: []};
     var speedsByLayer = {extrude: {}, retract: {}, move: {}};
+    var volSpeeds = [];
+    var volSpeedsByLayer = {};
+    var extrusionSpeeds = [];
+    var extrusionSpeedsByLayer = {};
 
 
 
@@ -87,7 +91,11 @@
                 layerTotal: model.length,
                 speeds: speeds,
                 speedsByLayer: speedsByLayer,
-                printTimeByLayer: printTimeByLayer
+                volSpeeds: volSpeeds,
+                volSpeedsByLayer: volSpeedsByLayer,
+                printTimeByLayer: printTimeByLayer,
+                extrusionSpeeds: extrusionSpeeds,
+                extrusionSpeedsByLayer: extrusionSpeedsByLayer
             }
         });
     };
@@ -174,9 +182,6 @@
                     type = 'retract';
                 }else if(!cmds[j].extrude&&cmds[j].retract===0){
                     type = 'move';
-    //                    if(cmds[j].prevZ == '17.1'){
-    //                        self.postMessage({cmd: 'Got speed ' + cmds[j].speed + 'with line ' + cmds[j].gcodeLine});
-    //                    }
                 }else {
                     self.postMessage({cmd: 'unknown type of move'});
                     type = 'unknown';
@@ -192,6 +197,39 @@
                 if(speedsByLayer[type][cmds[j].prevZ].indexOf(cmds[j].speed) === -1){
                     speedsByLayer[type][cmds[j].prevZ][speedIndex] = cmds[j].speed;
                 }
+
+                if(cmds[j].extrude&&cmds[j].retract === 0&&x_ok&&y_ok){
+                    // we are extruding
+                    var volPerMM = cmds[j].volPerMM;
+                    volPerMM = parseFloat(volPerMM).toFixed(3);
+                    var volIndex = volSpeeds.indexOf(volPerMM);
+                    if(volIndex === -1){
+                        volSpeeds.push(volPerMM);
+                        volIndex = volSpeeds.indexOf(volPerMM);
+                    }
+                    if(typeof(volSpeedsByLayer[cmds[j].prevZ]) === 'undefined'){
+                        volSpeedsByLayer[cmds[j].prevZ] = [];
+                    }
+                    if(volSpeedsByLayer[cmds[j].prevZ].indexOf(volPerMM) === -1){
+                        volSpeedsByLayer[cmds[j].prevZ][volIndex] = volPerMM;
+                    }
+
+                    var extrusionSpeed = volPerMM*cmds[j].speed;
+                    extrusionSpeed = parseFloat(extrusionSpeed).toFixed(3);
+                    var volIndex = extrusionSpeeds.indexOf(extrusionSpeed);
+                    if(volIndex === -1){
+                        extrusionSpeeds.push(extrusionSpeed);
+                        volIndex = extrusionSpeeds.indexOf(extrusionSpeed);
+                    }
+                    if(typeof(extrusionSpeedsByLayer[cmds[j].prevZ]) === 'undefined'){
+                        extrusionSpeedsByLayer[cmds[j].prevZ] = [];
+                    }
+                    if(extrusionSpeedsByLayer[cmds[j].prevZ].indexOf(extrusionSpeed) === -1){
+                        extrusionSpeedsByLayer[cmds[j].prevZ][volIndex] = extrusionSpeed;
+                    }
+                }
+
+
 
             }
             sendSizeProgress(i/model.length*100);
@@ -218,7 +256,7 @@
     //            console.time("parseGCode timer");
         var reg = new RegExp(/^(?:G0|G1)\s/i);
         var comment = new RegExp()
-        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false;
+        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false, volPerMM;
         var dcExtrude=false;
         var assumeNonDC = false;
 
@@ -227,6 +265,7 @@
             x=undefined;
             y=undefined;
             z=undefined;
+            volPerMM=undefined;
             retract = 0;
 
 
@@ -316,8 +355,11 @@
                     extrude = true;
                     prev_extrude["abs"] = Math.sqrt((prevX-x)*(prevX-x)+(prevY-y)*(prevY-y));
                 }
+                if(extrude&&retract == 0){
+                    volPerMM = Number(prev_extrude['abs']/Math.sqrt((prevX-x)*(prevX-x)+(prevY-y)*(prevY-y)));
+                }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i)};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM.toFixed(3)};
                 //{x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
                 if(typeof(x) !== 'undefined') prevX = x;
                 if(typeof(y) !== 'undefined') prevY = y;

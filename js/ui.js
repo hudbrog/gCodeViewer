@@ -13,6 +13,7 @@ GCODE.ui = (function(){
     var sliderHor;
     var gCodeLines = {first: 0, last: 0};
     var showGCode = false;
+    var displayType = {speed: 1, expermm: 2, volpersec: 3};
 //    var worker;
 
     var setProgress = function(id, progress){
@@ -35,29 +36,21 @@ GCODE.ui = (function(){
         }
     };
 
-
-    var printLayerInfo = function(layerNum){
+    var prepareSpeedsInfo = function(layerNum){
         var z = GCODE.renderer.getZ(layerNum);
-        var segments = GCODE.renderer.getLayerNumSegments(layerNum);
-        var filament = GCODE.gCodeReader.getLayerFilament(z);
         var layerSpeeds = GCODE.gCodeReader.getModelInfo().speedsByLayer;
         var renderOptions = GCODE.renderer.getOptions();
         var colors = renderOptions["colorLine"];
+        var colorLen = renderOptions['colorLineLen'];
         var speedIndex = 0;
-//        var keys, type;
-//        var showMove=false;
-        var i;
         var output = [];
-        output.push("Layer number: " + layerNum);
-        output.push("Layer height (mm): " + z);
-        output.push("GCODE commands in layer: " + segments);
-        output.push("Filament used by layer (mm): " + filament.toFixed(2));
-        output.push("Print time for layer: " + parseFloat(GCODE.gCodeReader.getModelInfo().printTimeByLayer[z]).toFixed(1) + "sec");
+        var i;
+
         output.push("Extrude speeds:");
         for(i=0;i<layerSpeeds['extrude'][z].length;i++){
             if(typeof(layerSpeeds['extrude'][z][i])==='undefined'){continue;}
             speedIndex = i;
-            if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+            if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
             output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds['extrude'][z][i])/60).toFixed(2)+"mm/s");
         }
         if(typeof(layerSpeeds['move'][z]) !== 'undefined'){
@@ -65,7 +58,7 @@ GCODE.ui = (function(){
             for(i=0;i<layerSpeeds['move'][z].length;i++){
                 if(typeof(layerSpeeds['move'][z][i])==='undefined'){continue;}
                 speedIndex = i;
-                if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+                if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
                 output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds['move'][z][i])/60).toFixed(2)+"mm/s");
             }
         }
@@ -74,9 +67,80 @@ GCODE.ui = (function(){
             for(i=0;i<layerSpeeds['retract'][z].length;i++){
                 if(typeof(layerSpeeds['retract'][z][i])==='undefined'){continue;}
                 speedIndex = i;
-                if(speedIndex > colors.length -1){speedIndex = speedIndex % (colors.length-1);}
+                if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
                 output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> <span style='color: " + renderOptions['colorRestart'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
             }
+        }
+
+        return output;
+    }
+
+    var prepareExPerMMInfo = function(layerNum){
+        var z = GCODE.renderer.getZ(layerNum);
+        var layerSpeeds = GCODE.gCodeReader.getModelInfo().volSpeedsByLayer;
+        var renderOptions = GCODE.renderer.getOptions();
+        var colors = renderOptions["colorLine"];
+        var colorLen = renderOptions['colorLineLen'];
+        var speedIndex = 0;
+        var output = [];
+        var i;
+
+        output.push("Extrude speeds in extrusion mm per move mm:");
+        for(i=0;i<layerSpeeds[z].length;i++){
+            if(typeof(layerSpeeds[z][i])==='undefined'){continue;}
+            speedIndex = i;
+            if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[z][i])).toFixed(3)+"mm/mm");
+        }
+
+        return output;
+    }
+
+    var prepareVolPerSecInfo = function(layerNum){
+        var z = GCODE.renderer.getZ(layerNum);
+        var layerSpeeds = GCODE.gCodeReader.getModelInfo().extrusionSpeedsByLayer;
+        var renderOptions = GCODE.renderer.getOptions();
+        var gCodeOptions = GCODE.gCodeReader.getOptions();
+        var colors = renderOptions["colorLine"];
+        var colorLen = renderOptions['colorLineLen'];
+        var speedIndex = 0;
+        var output = [];
+        var i;
+
+        output.push("Extrude speeds in mm^3/sec:");
+        for(i=0;i<layerSpeeds[z].length;i++){
+            if(typeof(layerSpeeds[z][i])==='undefined'){continue;}
+            speedIndex = i;
+            if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[z][i]*3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4)).toFixed(3)+"mm^3/sec");
+        }
+
+        return output;
+    }
+
+
+    var printLayerInfo = function(layerNum){
+        var z = GCODE.renderer.getZ(layerNum);
+        var segments = GCODE.renderer.getLayerNumSegments(layerNum);
+        var renderOptions = GCODE.renderer.getOptions();
+        var filament = GCODE.gCodeReader.getLayerFilament(z);
+        var output = [];
+
+        output.push("Layer number: " + layerNum);
+        output.push("Layer height (mm): " + z);
+        output.push("GCODE commands in layer: " + segments);
+        output.push("Filament used by layer (mm): " + filament.toFixed(2));
+        output.push("Print time for layer: " + parseFloat(GCODE.gCodeReader.getModelInfo().printTimeByLayer[z]).toFixed(1) + "sec");
+
+        if(renderOptions['speedDisplayType'] === displayType.speed){
+            var res = prepareSpeedsInfo(layerNum);
+            output = output.concat(res);
+        }else if(renderOptions['speedDisplayType'] === displayType.expermm){
+            var res = prepareExPerMMInfo(layerNum);
+            output = output.concat(res);
+        }else if(renderOptions['speedDisplayType'] === displayType.volpersec){
+            var res = prepareVolPerSecInfo(layerNum);
+            output = output.concat(res);
         }
 
         $('#layerInfo').html(output.join('<br>'));
@@ -386,6 +450,11 @@ GCODE.ui = (function(){
 
             if(document.getElementById('plasticABS').checked)GCODE.gCodeReader.setOption({filamentType: "ABS"});
             if(document.getElementById('plasticPLA').checked)GCODE.gCodeReader.setOption({filamentType: "PLA"});
+
+            if(document.getElementById('speedDisplayRadio').checked)GCODE.renderer.setOption({speedDisplayType: displayType.speed});
+            if(document.getElementById('exPerMMRadio').checked)GCODE.renderer.setOption({speedDisplayType: displayType.expermm});
+            if(document.getElementById('volPerSecRadio').checked)GCODE.renderer.setOption({speedDisplayType: displayType.volpersec});
+
         },
 
         updateOptions: function(){
@@ -397,6 +466,12 @@ GCODE.ui = (function(){
 
         resetSliders: function(){
             initSliders();
+        },
+
+        setOption: function(options){
+            for(var opt in options){
+                uiOptions[opt] = options[opt];
+            }
         }
     }
 }());

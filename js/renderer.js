@@ -23,6 +23,7 @@ GCODE.renderer = (function(){
     var scaleFactor = 1.1;
     var model;
     var initialized=false;
+    var displayType = {speed: 1, expermm: 2, volpersec: 3};
     var renderOptions = {
         showMoves: true,
         showRetracts: true,
@@ -42,12 +43,17 @@ GCODE.renderer = (function(){
         alpha: false,
         actualWidth: false,
         renderErrors: false,
-        renderAnalysis: false
+        renderAnalysis: false,
+        speedDisplayType: displayType.speed
     };
 
     var offsetModelX=0, offsetModelY=0;
     var speeds = [];
     var speedsByLayer = {};
+    var volSpeeds = [];
+    var volSpeedsByLayer = {};
+    var extrusionSpeeds = [];
+    var extrusionSpeedsByLayer = {};
 
 
     var reRender = function(){
@@ -272,7 +278,15 @@ GCODE.renderer = (function(){
             else y = -cmds[i].y;
             if(renderOptions["differentiateColors"]&&!renderOptions['showNextLayer']&&!renderOptions['renderAnalysis']){
 //                if(speedsByLayer['extrude'][prevZ]){
+                if(renderOptions['speedDisplayType'] === displayType.speed){
                     speedIndex = speeds['extrude'].indexOf(cmds[i].speed);
+                }else if(renderOptions['speedDisplayType'] === displayType.expermm){
+                    speedIndex = volSpeeds.indexOf(cmds[i].volPerMM);
+                }else if(renderOptions['speedDisplayType'] === displayType.volpersec){
+                    speedIndex = extrusionSpeeds.indexOf((cmds[i].volPerMM*cmds[i].speed).toFixed(3));
+                }else{
+                    speedIndex=0;
+                }
 //                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer['extrude'][prevZ], function(obj) {return obj.speed === cmds[i].speed;});
 //                } else {
 //                    speedIndex = -1;
@@ -457,6 +471,10 @@ GCODE.renderer = (function(){
             mdlInfo = GCODE.gCodeReader.getModelInfo();
             speeds = mdlInfo.speeds;
             speedsByLayer = mdlInfo.speedsByLayer;
+            volSpeeds = mdlInfo.volSpeeds;
+            volSpeedsByLayer = mdlInfo.volSpeedsByLayer;
+            extrusionSpeeds = mdlInfo.extrusionSpeeds;
+            extrusionSpeedsByLayer = mdlInfo.extrusionSpeedsByLayer;
 //            console.log(speeds);
 //            console.log(mdlInfo.min.x + ' ' + mdlInfo.modelSize.x);
             offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
