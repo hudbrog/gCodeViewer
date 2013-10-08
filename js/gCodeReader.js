@@ -13,6 +13,7 @@ GCODE.gCodeReader = (function(){
     var min = {x: undefined, y: undefined, z: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
+    var filamentByExtruder = {};
     var printTimeByLayer;
     var totalFilament=0;
     var printTime=0;
@@ -75,7 +76,7 @@ GCODE.gCodeReader = (function(){
     var purgeLayers = function(){
         var purge=true;
         if(!model){
-            console.log("Something terribly wring just happened.");
+            console.log("Something terribly wrong just happened.");
             return;
         }
         for(var i=0;i<model.length;i++){
@@ -246,6 +247,7 @@ GCODE.gCodeReader = (function(){
             modelSize = msg.modelSize;
             totalFilament = msg.totalFilament;
             filamentByLayer = msg.filamentByLayer;
+            filamentByExtruder = msg.filamentByExtruder;
             speeds = msg.speeds;
             speedsByLayer = msg.speedsByLayer;
             printTime = msg.printTime;
@@ -285,6 +287,7 @@ GCODE.gCodeReader = (function(){
                 max: max,
                 modelSize: modelSize,
                 totalFilament: totalFilament,
+                filamentByExtruder: filamentByExtruder,
                 speeds: speeds,
                 speedsByLayer: speedsByLayer,
                 printTime: printTime,

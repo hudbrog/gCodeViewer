@@ -17,6 +17,7 @@
     var min = {x: undefined, y: undefined, z: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
+    var filamentByExtruder = {};
     var totalFilament=0;
     var printTime=0;
     var printTimeByLayer = {};
@@ -85,6 +86,7 @@
                 modelSize: modelSize,
                 totalFilament:totalFilament,
                 filamentByLayer: filamentByLayer,
+                filamentByExtruder: filamentByExtruder,
                 printTime: printTime,
                 layerHeight: layerHeight,
                 layerCnt: layerCnt,
@@ -156,10 +158,14 @@
                     min.z = parseFloat(min.z)<parseFloat(cmds[j].prevZ)?parseFloat(min.z):parseFloat(cmds[j].prevZ);
                 }
 
-                if(typeof(cmds[j].extrude) !== 'undefined'||cmds[j].retract!=0){
+                if((typeof(cmds[j].extrude) !== 'undefined' && cmds[j].extrude == true)||cmds[j].retract!=0){
                     totalFilament+=cmds[j].extrusion;
                     if(!filamentByLayer[cmds[j].prevZ])filamentByLayer[cmds[j].prevZ]=0;
                     filamentByLayer[cmds[j].prevZ]+=cmds[j].extrusion;
+                    if(cmds[j].extruder != null){
+                        if(!filamentByExtruder[cmds[j].extruder])filamentByExtruder[cmds[j].extruder]=0;
+                        filamentByExtruder[cmds[j].extruder]+=cmds[j].extrusion;
+                    }
                 }
 
                 if(x_ok&&y_ok){
@@ -256,7 +262,7 @@
     //            console.time("parseGCode timer");
         var reg = new RegExp(/^(?:G0|G1)\s/i);
         var comment = new RegExp()
-        var j, layer= 0, extrude=false, prevRetract= 0, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false, volPerMM;
+        var j, layer= 0, extrude=false, prevRetract= {e: 0, a: 0, b: 0, c: 0}, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false, volPerMM, extruder;
         var dcExtrude=false;
         var assumeNonDC = false;
 
@@ -270,6 +276,8 @@
 
 
             extrude=false;
+            extruder = null;
+            prev_extrude["abs"] = 0;
             gcode[i] = gcode[i].split(/[\(;]/)[0];
 
     //                prevRetract=0;
@@ -316,6 +324,7 @@
                         case 'b':
                         case 'c':
                             assumeNonDC = true;
+                            extruder = argChar;
                             numSlice = parseFloat(args[j].slice(1)).toFixed(3);
 
                             if(!extrudeRelative){
@@ -327,14 +336,14 @@
                             }
                             extrude = prev_extrude["abs"]>0;
                             if(prev_extrude["abs"]<0){
-                                prevRetract = -1;
+                                prevRetract[extruder] = -1;
                                 retract = -1;
                             }
                             else if(prev_extrude["abs"]==0){
     //                                        if(prevRetract <0 )prevRetract=retract;
                                 retract = 0;
-                            }else if(prev_extrude["abs"]>0&&prevRetract < 0){
-                                prevRetract = 0;
+                            }else if(prev_extrude["abs"]>0&&prevRetract[extruder] < 0){
+                                prevRetract[extruder] = 0;
                                 retract = 1;
                             } else {
     //                                        prevRetract = retract;
@@ -359,7 +368,8 @@
                     volPerMM = Number(prev_extrude['abs']/Math.sqrt((prevX-x)*(prevX-x)+(prevY-y)*(prevY-y)));
                 }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM.toFixed(3)};
+                //if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0)
+                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM.toFixed(3)};
                 //{x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
                 if(typeof(x) !== 'undefined') prevX = x;
                 if(typeof(y) !== 'undefined') prevY = y;
@@ -389,8 +399,12 @@
                             z=args[j].slice(1);
                             prevZ = z;
                             break;
-                        case 'e'||'a'||'b'||'c':
-                            numSlice = args[j].slice(1);
+                        case 'e':
+                        case 'a':
+                        case 'b':
+                        case 'c':
+                            numSlice = parseFloat(args[j].slice(1)).toFixed(3);
+                            extruder = argChar;
                             if(!extrudeRelative)
                                 prev_extrude[argChar] = 0;
                             else {
@@ -403,7 +417,8 @@
                     }
                 }
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: parseFloat(x), y: parseFloat(y), z: parseFloat(z), extrude: extrude, retract: parseFloat(retract), noMove: true, extrusion: (extrude||retract)?parseFloat(prev_extrude["abs"]):0, prevX: parseFloat(prevX), prevY: parseFloat(prevY), prevZ: parseFloat(prevZ), speed: parseFloat(lastF),gcodeLine: parseFloat(i)};
+                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined')
+                    model[layer][model[layer].length] = {x: parseFloat(x), y: parseFloat(y), z: parseFloat(z), extrude: extrude, retract: parseFloat(retract), noMove: true, extrusion: 0, extruder: extruder, prevX: parseFloat(prevX), prevY: parseFloat(prevY), prevZ: parseFloat(prevZ), speed: parseFloat(lastF), gcodeLine: parseFloat(i)};
             }else if(gcode[i].match(/^(?:G28)/i)){
                 var args = gcode[i].split(/\s/);
                 for(j=0;j<args.length;j++){
@@ -452,7 +467,8 @@
 //                if(typeof(prevY) === 'undefined'){prevY=0;}
 
                 if(!model[layer])model[layer]=[];
-                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0) model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i)};
+//                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0)
+                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i)};
 //                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove:false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: parseFloat(i)};
             }
             if(typeof(sendLayer) !== "undefined"){
@@ -509,6 +525,7 @@
         min = {x: undefined, y: undefined, z: undefined};
         modelSize = {x: undefined, y: undefined, z: undefined};
         filamentByLayer = {};
+        filamentByExtruder = {};
         totalFilament=0;
         printTime=0;
         printTimeByLayer = {};

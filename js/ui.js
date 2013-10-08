@@ -154,6 +154,14 @@ GCODE.ui = (function(){
         resultSet.push("Model size is: " + modelInfo.modelSize.x.toFixed(2) + 'x' + modelInfo.modelSize.y.toFixed(2) + 'x' + modelInfo.modelSize.z.toFixed(2)+'mm<br>');
         resultSet.push("Total filament used: " + modelInfo.totalFilament.toFixed(2) + "mm<br>");
         resultSet.push("Total filament weight used: " + modelInfo.totalWeight.toFixed(2) + "grams<br>");
+        var i = 0, tmp = [];
+        for(var key in modelInfo.filamentByExtruder){
+            i++;
+            tmp.push("Filament for extruder '" + key + "': " + modelInfo.filamentByExtruder[key].toFixed(2) + "mm<br>");
+        }
+        if(i>1){
+            resultSet.push(tmp.join(''));
+        }
         resultSet.push("Estimated print time: " + parseInt(parseFloat(modelInfo.printTime)/60/60) + ":" + parseInt((parseFloat(modelInfo.printTime)/60)%60) + ":" + parseInt(parseFloat(modelInfo.printTime)%60) + "<br>");
         resultSet.push("Estimated layer height: " + modelInfo.layerHeight.toFixed(2) + "mm<br>");
         resultSet.push("Layer count: " + modelInfo.layerCnt.toFixed(0) + "printed, " + modelInfo.layerTotal.toFixed(0) + 'visited<br>');
