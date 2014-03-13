@@ -151,7 +151,7 @@ GCODE.renderer3d = (function(){
             $container.empty();
             $container.append(renderer.domElement);
 
-            controls = new THREE.TrackballControls(camera);
+            controls = new THREE.TrackballControls(camera, renderer.domElement);
             controls.rotateSpeed = 1.0;
             controls.zoomSpeed = 1.2;
             controls.panSpeed = 0.8;
