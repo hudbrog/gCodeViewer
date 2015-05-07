@@ -8,17 +8,13 @@ html {
 #wrap {
     width:1000px;
     height: 680px;
-    position: absolute;
-    top: 50%;
-    margin-top: -350px;
-    left: 50%;
-    margin-left: -500px;
-    /**/
+    position: relative;
+    margin: 20px auto;
     background:#ffffff;
     /*border: 5px outset #bbb;*/
-    /*-moz-border-radius: 5px;*/
-    /*-webkit-border-radius: 5px;*/
-    /*border-radius: 5px;*/
+    -moz-border-radius: 20px;
+    -webkit-border-radius: 20px;
+    border-radius: 20px;
 }
 #control {
     float:left;
@@ -52,6 +48,15 @@ html {
     height: 680px;
     border-width: 2px;
     border-style: none none none solid;
+    -webkit-border-top-right-radius: 20px;
+    -webkit-border-bottom-right-radius: 20px;
+    -moz-border-radius-topright: 20px;
+    -moz-border-radius-bottomright: 20px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;}
+
+.CodeMirror {
+    border-bottom-right-radius: 20px;
 }
 
 #canvas{
