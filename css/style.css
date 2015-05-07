@@ -12,9 +12,9 @@ html {
     margin: 20px auto;
     background:#ffffff;
     /*border: 5px outset #bbb;*/
-    -moz-border-radius: 20px;
-    -webkit-border-radius: 20px;
-    border-radius: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
 }
 #control {
     float:left;
@@ -48,15 +48,15 @@ html {
     height: 680px;
     border-width: 2px;
     border-style: none none none solid;
-    -webkit-border-top-right-radius: 20px;
-    -webkit-border-bottom-right-radius: 20px;
-    -moz-border-radius-topright: 20px;
-    -moz-border-radius-bottomright: 20px;
-    border-top-right-radius: 20px;
-    border-bottom-right-radius: 20px;}
+    -webkit-border-top-right-radius: 10px;
+    -webkit-border-bottom-right-radius: 10px;
+    -moz-border-radius-topright: 10px;
+    -moz-border-radius-bottomright: 10px;
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;}
 
 .CodeMirror {
-    border-bottom-right-radius: 20px;
+    border-bottom-right-radius: 10px;
 }
 
 #canvas{
