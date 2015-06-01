@@ -112,7 +112,7 @@ GCODE.ui = (function(){
             if(typeof(layerSpeeds[z][i])==='undefined'){continue;}
             speedIndex = i;
             if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[z][i]*3.141*gCodeOptions['filamentDia']/10*gCodeOptions['filamentDia']/10/4)).toFixed(3)+"mm^3/sec");
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[z][i]*3.141*gCodeOptions['filamentDia']*gCodeOptions['filamentDia']/4)).toFixed(3)+"mm^3/sec");
         }
 
         return output;
@@ -462,7 +462,10 @@ GCODE.ui = (function(){
             if(document.getElementById('speedDisplayRadio').checked)GCODE.renderer.setOption({speedDisplayType: displayType.speed});
             if(document.getElementById('exPerMMRadio').checked)GCODE.renderer.setOption({speedDisplayType: displayType.expermm});
             if(document.getElementById('volPerSecRadio').checked)GCODE.renderer.setOption({speedDisplayType: displayType.volpersec});
-
+            if(GCODE.gCodeReader.getModelInfo().layerTotal > 0){
+                printModelInfo();
+                printLayerInfo($( "#slider-vertical" ).slider("value"));
+            }
         },
 
         updateOptions: function(){

@@ -283,7 +283,7 @@ GCODE.renderer = (function(){
                 }else if(renderOptions['speedDisplayType'] === displayType.expermm){
                     speedIndex = volSpeeds.indexOf(cmds[i].volPerMM);
                 }else if(renderOptions['speedDisplayType'] === displayType.volpersec){
-                    speedIndex = extrusionSpeeds.indexOf((cmds[i].volPerMM*cmds[i].speed).toFixed(3));
+                    speedIndex = extrusionSpeeds.indexOf((cmds[i].volPerMM*cmds[i].speed/60).toFixed(3));
                 }else{
                     speedIndex=0;
                 }

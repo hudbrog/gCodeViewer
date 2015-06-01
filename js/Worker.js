@@ -220,7 +220,7 @@
                         volSpeedsByLayer[cmds[j].prevZ][volIndex] = volPerMM;
                     }
 
-                    var extrusionSpeed = volPerMM*cmds[j].speed;
+                    var extrusionSpeed = cmds[j].volPerMM*(cmds[j].speed/60);
                     extrusionSpeed = parseFloat(extrusionSpeed).toFixed(3);
                     var volIndex = extrusionSpeeds.indexOf(extrusionSpeed);
                     if(volIndex === -1){
@@ -325,7 +325,7 @@
                         case 'c':
                             assumeNonDC = true;
                             extruder = argChar;
-                            numSlice = parseFloat(args[j].slice(1)).toFixed(3);
+                            numSlice = parseFloat(args[j].slice(1)).toFixed(6);
 
                             if(!extrudeRelative){
                                 // absolute extrusion positioning
@@ -369,7 +369,7 @@
                 }
                 if(!model[layer])model[layer]=[];
                 //if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0)
-                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM.toFixed(3)};
+                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM};
                 //{x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
                 if(typeof(x) !== 'undefined') prevX = x;
                 if(typeof(y) !== 'undefined') prevY = y;
