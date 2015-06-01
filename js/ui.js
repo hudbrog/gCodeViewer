@@ -150,6 +150,7 @@ GCODE.ui = (function(){
     var printModelInfo = function(){
         var resultSet = [];
         var modelInfo = GCODE.gCodeReader.getModelInfo();
+        var gCodeOptions = GCODE.gCodeReader.getOptions();
 
         resultSet.push("Model size is: " + modelInfo.modelSize.x.toFixed(2) + 'x' + modelInfo.modelSize.y.toFixed(2) + 'x' + modelInfo.modelSize.z.toFixed(2)+'mm<br>');
         resultSet.push("Total filament used: " + modelInfo.totalFilament.toFixed(2) + "mm<br>");
@@ -165,6 +166,9 @@ GCODE.ui = (function(){
         resultSet.push("Estimated print time: " + parseInt(parseFloat(modelInfo.printTime)/60/60) + ":" + parseInt((parseFloat(modelInfo.printTime)/60)%60) + ":" + parseInt(parseFloat(modelInfo.printTime)%60) + "<br>");
         resultSet.push("Estimated layer height: " + modelInfo.layerHeight.toFixed(2) + "mm<br>");
         resultSet.push("Layer count: " + modelInfo.layerCnt.toFixed(0) + "printed, " + modelInfo.layerTotal.toFixed(0) + 'visited<br>');
+        resultSet.push("Time cost: " + (modelInfo.printTime*gCodeOptions.hourlyCost/60/60).toFixed(2) + '<br>');
+        resultSet.push("Filament cost: " + (modelInfo.totalWeight*gCodeOptions.filamentPrice).toFixed(2) + '<br>');
+
         document.getElementById('list').innerHTML =  resultSet.join('');
     };
 
@@ -455,6 +459,14 @@ GCODE.ui = (function(){
             var nozzleDia = 0.4;
             if(Number($('#nozzleDia').attr('value'))) {nozzleDia = Number($('#nozzleDia').attr('value'));}
             GCODE.gCodeReader.setOption({nozzleDia: nozzleDia});
+
+            var hourlyCost = 1.0;
+            if(Number($('#hourlyCost').attr('value'))) {hourlyCost = Number($('#hourlyCost').attr('value'));}
+            GCODE.gCodeReader.setOption({hourlyCost: hourlyCost});
+
+            var filamentPrice = 0.05;
+            if(Number($('#filamentPrice').attr('value'))) {filamentPrice = Number($('#filamentPrice').attr('value'));}
+            GCODE.gCodeReader.setOption({filamentPrice: filamentPrice});
 
             if(document.getElementById('plasticABS').checked)GCODE.gCodeReader.setOption({filamentType: "ABS"});
             if(document.getElementById('plasticPLA').checked)GCODE.gCodeReader.setOption({filamentType: "PLA"});
