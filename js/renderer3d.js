@@ -46,9 +46,9 @@ GCODE.renderer3d = (function(){
         if(!cmds)return;
         for(j=0;j<cmds.length;j++){
             if(!cmds[j])continue;
-            if(!cmds[j].x)cmds[j].x=prevX;
-            if(!cmds[j].y)cmds[j].y=prevY;
-            if(!cmds[j].z)cmds[j].z=prevZ;
+            if(isNaN(cmds[j].x))cmds[j].x=prevX;
+            if(isNaN(cmds[j].y))cmds[j].y=prevY;
+            if(isNaN(cmds[j].z))cmds[j].z=prevZ;
             if(!cmds[j].extrude){
             }
             else {
