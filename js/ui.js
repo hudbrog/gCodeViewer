@@ -181,7 +181,7 @@ GCODE.ui = (function(){
 
         var output = [];
         for (var i = 0, f; f = files[i]; i++) {
-            if(f.name.toLowerCase().match(/^.*\.(?:gcode|g|txt|gco)$/)){
+            if(f.name.toLowerCase().match(/^.*\.(?:gcode|g|txt|gco|gx)$/)){
                 output.push('<li>File extensions suggests GCODE</li>');
             }else{
                 output.push('<li><strong>You should only upload *.gcode files! I will not work with this one!</strong></li>');

@@ -176,6 +176,8 @@ GCODE.gCodeReader = (function(){
         }else if(gcode.match(/Miracle/)){
             slicer = 'makerbot';
             getParamsFromMiracleGrue(gcode);
+        }else if(gcode.match(/ffslicer/)){
+            slicer = 'Flash Forge'
         }
 
     }
