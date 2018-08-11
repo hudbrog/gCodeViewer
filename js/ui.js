@@ -106,13 +106,20 @@ GCODE.ui = (function(){
         var speedIndex = 0;
         var output = [];
         var i;
+		var spd;
 
         output.push("Extrude speeds in mm^3/sec:");
         for(i=0;i<layerSpeeds[z].length;i++){
             if(typeof(layerSpeeds[z][i])==='undefined'){continue;}
             speedIndex = i;
             if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[z][i]*3.141*gCodeOptions['filamentDia']*gCodeOptions['filamentDia']/4)).toFixed(3)+"mm^3/sec");
+
+			spd = parseFloat(layerSpeeds[z][i]);
+			if(!gCodeOptions.volumetricE) {
+				spd *= Math.PI * Math.pow(gCodeOptions.filamentDia / 2, 2);
+			}
+
+            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + spd.toFixed(3) +"mm^3/sec");
         }
 
         return output;
@@ -152,13 +159,23 @@ GCODE.ui = (function(){
         var modelInfo = GCODE.gCodeReader.getModelInfo();
         var gCodeOptions = GCODE.gCodeReader.getOptions();
 
+		let totalFilament = modelInfo.totalFilament;
+		let totalWeight = modelInfo.totalWeight;
+		let filamentByExtruder = modelInfo.filamentByExtruder;
+		if(gCodeOptions.volumetricE) {
+			let fCrossSection = Math.PI * Math.pow(gCodeOptions.filamentDia / 2.0, 2);
+			totalFilament /= fCrossSection;
+			totalWeight /= fCrossSection;
+			for(let k in filamentByExtruder) filamentByExtruder[k] /= fCrossSection;
+		}
+
         resultSet.push("Model size is: " + modelInfo.modelSize.x.toFixed(2) + 'x' + modelInfo.modelSize.y.toFixed(2) + 'x' + modelInfo.modelSize.z.toFixed(2)+'mm<br>');
-        resultSet.push("Total filament used: " + modelInfo.totalFilament.toFixed(2) + "mm<br>");
-        resultSet.push("Total filament weight used: " + modelInfo.totalWeight.toFixed(2) + "grams<br>");
+        resultSet.push("Total filament used: " + totalFilament.toFixed(2) + "mm<br>");
+        resultSet.push("Total filament weight used: " + totalWeight.toFixed(2) + "grams<br>");
         var i = 0, tmp = [];
         for(var key in modelInfo.filamentByExtruder){
             i++;
-            tmp.push("Filament for extruder '" + key + "': " + modelInfo.filamentByExtruder[key].toFixed(2) + "mm<br>");
+            tmp.push("Filament for extruder '" + key + "': " + filamentByExtruder[key].toFixed(2) + "mm<br>");
         }
         if(i>1){
             resultSet.push(tmp.join(''));
@@ -167,7 +184,7 @@ GCODE.ui = (function(){
         resultSet.push("Estimated layer height: " + modelInfo.layerHeight.toFixed(2) + "mm<br>");
         resultSet.push("Layer count: " + modelInfo.layerCnt.toFixed(0) + "printed, " + modelInfo.layerTotal.toFixed(0) + 'visited<br>');
         resultSet.push("Time cost: " + (modelInfo.printTime*gCodeOptions.hourlyCost/60/60).toFixed(2) + '<br>');
-        resultSet.push("Filament cost: " + (modelInfo.totalWeight*gCodeOptions.filamentPrice).toFixed(2) + '<br>');
+        resultSet.push("Filament cost: " + (totalWeight*gCodeOptions.filamentPrice).toFixed(2) + '<br>');
 
         document.getElementById('list').innerHTML =  resultSet.join('');
     };
@@ -418,6 +435,7 @@ GCODE.ui = (function(){
 			GCODE.gCodeReader.setOption({
 				sortLayers: document.getElementById('sortLayersCheckbox').checked,
 				purgeEmptyLayers: document.getElementById('purgeEmptyLayersCheckbox').checked,
+				volumetricE: document.getElementById('volumetricE').checked,
 
 				filamentDia: Number($('#filamentDia').val()) || 1.75,
 				nozzleDia: Number($('#nozzleDia').val()) || 0.4,
