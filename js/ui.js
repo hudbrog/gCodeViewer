@@ -126,10 +126,16 @@ GCODE.ui = (function(){
         var filament = GCODE.gCodeReader.getLayerFilament(z);
         var output = [];
 
+        var aggFilamentUsed = 0.0;
+        for (var x = 0; x <= layerNum; x++) {
+          aggFilamentUsed += parseFloat(GCODE.gCodeReader.getLayerFilament(GCODE.renderer.getZ(x)).toFixed(2));
+        }
+
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
         output.push("GCODE commands in layer: " + segments);
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
+        output.push("Filament used, accumulated (mm): " + aggFilamentUsed);
         output.push("Print time for layer: " + parseFloat(GCODE.gCodeReader.getModelInfo().printTimeByLayer[z]).toFixed(1) + "sec");
 
         if(renderOptions['speedDisplayType'] === displayType.speed){
