@@ -555,7 +555,7 @@ onmessage = function (e){
             break;
 
         default:
-            self.postMessage('Unknown command: ' + data.msg);
+            self.postMessage('Unknown command: ' + data.msg, null);
     }
 
 };
