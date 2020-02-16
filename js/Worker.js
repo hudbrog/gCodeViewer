@@ -13,8 +13,9 @@
         purgeEmptyLayers: true,
         analyzeModel: false
     };
-    var max = {x: undefined, y: undefined, z: undefined};
-    var min = {x: undefined, y: undefined, z: undefined};
+    // Only print move speeds will be considered in max.speed and min.speed
+    var max = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
+    var min = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
     var filamentByExtruder = {};
@@ -206,8 +207,14 @@
 
                 if(cmds[j].extrude&&cmds[j].retract === 0&&x_ok&&y_ok){
                     // we are extruding
-                    var volPerMM = cmds[j].volPerMM;
-                    volPerMM = parseFloat(volPerMM).toFixed(3);
+                    max.speed = parseFloat(max.speed)>parseFloat(cmds[j].speed) ? parseFloat(max.speed):parseFloat(cmds[j].speed);
+                    min.speed = parseFloat(min.speed)<parseFloat(cmds[j].speed) ? parseFloat(min.speed):parseFloat(cmds[j].speed);
+
+                    var volPerMM = parseFloat(cmds[j].volPerMM);
+                    max.volSpeed = parseFloat(max.volSpeed)>volPerMM ? parseFloat(max.volSpeed):volPerMM;
+                    min.volSpeed = parseFloat(min.volSpeed)<volPerMM ? parseFloat(min.volSpeed):volPerMM;
+                    volPerMM = volPerMM.toFixed(3);
+
                     var volIndex = volSpeeds.indexOf(volPerMM);
                     if(volIndex === -1){
                         volSpeeds.push(volPerMM);
@@ -221,7 +228,10 @@
                     }
 
                     var extrusionSpeed = cmds[j].volPerMM*(cmds[j].speed/60);
-                    extrusionSpeed = parseFloat(extrusionSpeed).toFixed(3);
+                    extrusionSpeed = parseFloat(extrusionSpeed);
+                    max.extrSpeed = parseFloat(max.extrSpeed)>extrusionSpeed ? parseFloat(max.extrSpeed):extrusionSpeed;
+                    min.extrSpeed = parseFloat(min.extrSpeed)<extrusionSpeed ? parseFloat(min.extrSpeed):extrusionSpeed;
+                    extrusionSpeed = extrusionSpeed.toFixed(3);
                     var volIndex = extrusionSpeeds.indexOf(extrusionSpeed);
                     if(volIndex === -1){
                         extrusionSpeeds.push(extrusionSpeed);
@@ -231,6 +241,11 @@
                         extrusionSpeedsByLayer[cmds[j].prevZ] = [];
                     }
                     if(extrusionSpeedsByLayer[cmds[j].prevZ].indexOf(extrusionSpeed) === -1){
+                        // Array elements will NOT necessarily be set to undefined when
+                        // assigning beyond the current array length, so do it explicitly.
+                        for(var k=extrusionSpeedsByLayer[cmds[j].prevZ].length; k<volIndex; k++) {
+                            extrusionSpeedsByLayer[cmds[j].prevZ].push(undefined);
+                        }
                         extrusionSpeedsByLayer[cmds[j].prevZ][volIndex] = extrusionSpeed;
                     }
                 }
@@ -247,6 +262,16 @@
         modelSize.y = Math.abs(max.y - min.y);
         modelSize.z = Math.abs(max.z - min.z);
         layerHeight = (max.z-min.z)/(layerCnt-1);
+
+        if(max.speed == min.speed) {
+            max.speed = min.speed+1.0;
+        }
+        if(max.volSpeed == min.volSpeed) {
+            max.volSpeed = min.volSpeed+1.0;
+        }
+        if(max.extrSpeed == min.extrSpeed) {
+            max.extrSpeed = min.extrSpeed+1.0;
+        }
 
         sendAnalyzeDone();
     };
@@ -521,8 +546,8 @@
         firstReport = undefined;
         z_heights = {};
         model = [];
-        max = {x: undefined, y: undefined, z: undefined};
-        min = {x: undefined, y: undefined, z: undefined};
+        max = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
+        min = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
         modelSize = {x: undefined, y: undefined, z: undefined};
         filamentByLayer = {};
         filamentByExtruder = {};

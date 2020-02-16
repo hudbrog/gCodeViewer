@@ -9,8 +9,8 @@ GCODE.gCodeReader = (function(){
     var gcode, lines;
     var z_heights = {};
     var model = [];
-    var max = {x: undefined, y: undefined, z: undefined};
-    var min = {x: undefined, y: undefined, z: undefined};
+    var max = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
+    var min = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
     var filamentByExtruder = {};
