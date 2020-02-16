@@ -32,6 +32,7 @@ GCODE.renderer = (function(){
 //        colorLine: ["#000000", "#aabb88",  "#ffe7a0", "#6e7700", "#331a00", "#44ba97", "#08262f", "#db0e00", "#ff9977"],
         colorLine: ["#000000", "#45c7ba",  "#a9533a", "#ff44cc", "#dd1177", "#eeee22", "#ffbb55", "#ff5511", "#777788", "#ff0000", "#ffff00"],
         colorLineLen: 9,
+        gradientColors: [[110,64,110], [0,0,255], [0,255,255], [0,170,0], [232,232,0], [170,0,0], [255,0,255]],
         colorMove: "#00ff00",
         colorRetract: "#ff0000",
         colorRestart: "#0000ff",
@@ -54,7 +55,36 @@ GCODE.renderer = (function(){
     var volSpeedsByLayer = {};
     var extrusionSpeeds = [];
     var extrusionSpeedsByLayer = {};
+    var max = {};
+    var min = {};
 
+    var rgbToColor = function(r, g, b) {
+        var rString = Math.round(r).toString(16);
+        var gString = Math.round(g).toString(16);
+        var bString = Math.round(b).toString(16);
+        if(rString.length < 2) { rString = '0' + rString; }
+        if(gString.length < 2) { gString = '0' + gString; }
+        if(bString.length < 2) { bString = '0' + bString; }
+        return '#' + rString + gString + bString;
+    }
+
+    var gradientColor = function(scale) {
+        // There's still a rounding error somewhere, hence the .1.
+        // I leave it to some diligent programmer to find and fix this.
+        if(scale < -0.1 || scale > 1.1) {
+            return "#000000";
+        }
+        if(scale > 1) { scale=1; }
+        else if(scale < 0) { scale=0; }
+        var numSegments = renderOptions['gradientColors'].length;
+        var leftIndex = Math.floor(scale*(numSegments-1));
+        var mix = scale*(numSegments-1) - leftIndex;
+        var leftColor = renderOptions['gradientColors'][leftIndex];
+        var rightColor = renderOptions['gradientColors'][Math.ceil(scale*(numSegments-1))];
+        return rgbToColor(leftColor[0]*(1.0-mix)+rightColor[0]*mix,
+                          leftColor[1]*(1.0-mix)+rightColor[1]*mix,
+                          leftColor[2]*(1.0-mix)+rightColor[2]*mix);
+    }
 
     var reRender = function(){
         var gCodeOpts = GCODE.gCodeReader.getOptions();
@@ -214,7 +244,7 @@ GCODE.renderer = (function(){
     };
 
     var drawLayer = function(layerNum, fromProgress, toProgress, isNextLayer){
-        var i, speedIndex= 0, prevZ = 0;
+        var i, speedIndex= 0, prevZ = 0, speedScale = 0;
         isNextLayer = typeof isNextLayer !== 'undefined' ? isNextLayer : false;
         if(!isNextLayer){
             layerNumStore=layerNum;
@@ -280,12 +310,17 @@ GCODE.renderer = (function(){
 //                if(speedsByLayer['extrude'][prevZ]){
                 if(renderOptions['speedDisplayType'] === displayType.speed){
                     speedIndex = speeds['extrude'].indexOf(cmds[i].speed);
+                    speedScale = (cmds[i].speed - min.speed)/(max.speed-min.speed); 
                 }else if(renderOptions['speedDisplayType'] === displayType.expermm){
                     speedIndex = volSpeeds.indexOf(cmds[i].volPerMM);
+                    speedScale = (cmds[i].volPerMM - min.volSpeed)/(max.volSpeed-min.volSpeed); 
                 }else if(renderOptions['speedDisplayType'] === displayType.volpersec){
-                    speedIndex = extrusionSpeeds.indexOf((cmds[i].volPerMM*cmds[i].speed/60).toFixed(3));
+                    var volpersec = (cmds[i].volPerMM*cmds[i].speed/60).toFixed(3);
+                    speedIndex = extrusionSpeeds.indexOf(volpersec);
+                    speedScale = (volpersec - min.extrSpeed)/(max.extrSpeed-min.extrSpeed); 
                 }else{
-                    speedIndex=0;
+                    speedIndex = 0;
+                    speedScale = -1;
                 }
 //                    speedIndex = GCODE.ui.ArrayIndexOf(speedsByLayer['extrude'][prevZ], function(obj) {return obj.speed === cmds[i].speed;});
 //                } else {
@@ -348,7 +383,10 @@ GCODE.renderer = (function(){
             }
             else if(cmds[i].extrude){
                 if(cmds[i].retract==0){
-                    if(speedIndex>=0){
+                    if(speedScale>=0) {
+                        ctx.strokeStyle = gradientColor(speedScale);
+                    }
+                    else if(speedIndex>=0){
                         ctx.strokeStyle = renderOptions["colorLine"][speedIndex];
                     }else if(speedIndex===-1){
                         var val = parseInt(cmds[i].errLevelB).toString(16);
@@ -475,6 +513,8 @@ GCODE.renderer = (function(){
             volSpeedsByLayer = mdlInfo.volSpeedsByLayer;
             extrusionSpeeds = mdlInfo.extrusionSpeeds;
             extrusionSpeedsByLayer = mdlInfo.extrusionSpeedsByLayer;
+            max = mdlInfo.max;
+            min = mdlInfo.min;
 //            console.log(speeds);
 //            console.log(mdlInfo.min.x + ' ' + mdlInfo.modelSize.x);
             offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
@@ -499,6 +539,9 @@ GCODE.renderer = (function(){
                 if(cmds[i].prevZ!==undefined)return cmds[i].prevZ;
             }
             return '-1';
+        },
+        getGradientColor: function(scale){
+            return gradientColor(scale);
         }
 
 }

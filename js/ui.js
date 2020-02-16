@@ -39,35 +39,47 @@ GCODE.ui = (function(){
     var prepareSpeedsInfo = function(layerNum){
         var z = GCODE.renderer.getZ(layerNum);
         var layerSpeeds = GCODE.gCodeReader.getModelInfo().speedsByLayer;
+        var max = GCODE.gCodeReader.getModelInfo().max;
+        var min = GCODE.gCodeReader.getModelInfo().min;
         var renderOptions = GCODE.renderer.getOptions();
-        var colors = renderOptions["colorLine"];
-        var colorLen = renderOptions['colorLineLen'];
         var speedIndex = 0;
         var output = [];
+        var sortMe = {};
+        var sortKeys = [];
         var i;
+        var spd;
+        var scale;
 
         output.push("Extrude speeds:");
         for(i=0;i<layerSpeeds['extrude'][z].length;i++){
             if(typeof(layerSpeeds['extrude'][z][i])==='undefined'){continue;}
-            speedIndex = i;
-            if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds['extrude'][z][i])/60).toFixed(2)+"mm/s");
+            spd = parseFloat(layerSpeeds['extrude'][z][i]);
+            scale = (spd - min.speed)/(max.speed-min.speed);
+            spd = (spd/60).toFixed(2);
+            sortMe[spd] = "<div id='colorBox"+i+"' class='colorBox' style='background-color: "+ GCODE.renderer.getGradientColor(scale) + "'></div>  = " + spd+"mm/s";
         }
+        sortKeys = Object.keys(sortMe).sort((a, b) => b - a);
+        for(i=0;i<sortKeys.length;i++) {
+            output.push(sortMe[sortKeys[i]]);
+        }
+
         if(typeof(layerSpeeds['move'][z]) !== 'undefined'){
             output.push("Move speeds:");
             for(i=0;i<layerSpeeds['move'][z].length;i++){
                 if(typeof(layerSpeeds['move'][z][i])==='undefined'){continue;}
-                speedIndex = i;
-                if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
-                output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + (parseFloat(layerSpeeds['move'][z][i])/60).toFixed(2)+"mm/s");
+                spd = (parseFloat(layerSpeeds['move'][z][i])/60).toFixed(2);
+                sortMe[spd] = "<div id='colorBox"+i+"' class='colorBox' style='background-color: "+renderOptions['colorMove'] + "'></div>  = " + spd+"mm/s";
             }
         }
+        sortKeys = Object.keys(sortMe).sort((a, b) => b - a);
+        for(i=0;i<sortKeys.length;i++) {
+            output.push(sortMe[sortKeys[i]]);
+        }
+
         if(typeof(layerSpeeds['retract'][z]) !== 'undefined'){
             output.push("Retract speeds:");
             for(i=0;i<layerSpeeds['retract'][z].length;i++){
                 if(typeof(layerSpeeds['retract'][z][i])==='undefined'){continue;}
-                speedIndex = i;
-                if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
                 output.push("<span style='color: " + renderOptions['colorRetract'] +"'>&#9679;</span> <span style='color: " + renderOptions['colorRestart'] +"'>&#9679;</span> = " +(parseFloat(layerSpeeds['retract'][z][i])/60).toFixed(2)+"mm/s");
             }
         }
@@ -78,19 +90,26 @@ GCODE.ui = (function(){
     var prepareExPerMMInfo = function(layerNum){
         var z = GCODE.renderer.getZ(layerNum);
         var layerSpeeds = GCODE.gCodeReader.getModelInfo().volSpeedsByLayer;
-        var renderOptions = GCODE.renderer.getOptions();
-        var colors = renderOptions["colorLine"];
-        var colorLen = renderOptions['colorLineLen'];
-        var speedIndex = 0;
+        var max = GCODE.gCodeReader.getModelInfo().max;
+        var min = GCODE.gCodeReader.getModelInfo().min;
         var output = [];
+        var sortMe = {};
+        var sortKeys = [];
         var i;
+        var spd;
+        var scale;
 
         output.push("Extrude speeds in extrusion mm per move mm:");
         for(i=0;i<layerSpeeds[z].length;i++){
             if(typeof(layerSpeeds[z][i])==='undefined'){continue;}
-            speedIndex = i;
-            if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + (parseFloat(layerSpeeds[z][i])).toFixed(3)+"mm/mm");
+            spd = parseFloat(layerSpeeds[z][i]);
+            scale = (spd - min.volSpeed)/(max.volSpeed-min.volSpeed);
+            spd = spd.toFixed(3);
+            sortMe[spd] = "<div id='colorBox"+i+"' class='colorBox' style='background-color: "+ GCODE.renderer.getGradientColor(scale) + "'></div>  = " + spd+"mm/mm";
+        }
+        sortKeys = Object.keys(sortMe).sort((a, b) => b - a);
+        for(i=0;i<sortKeys.length;i++) {
+            output.push(sortMe[sortKeys[i]]);
         }
 
         return output;
@@ -99,27 +118,31 @@ GCODE.ui = (function(){
     var prepareVolPerSecInfo = function(layerNum){
         var z = GCODE.renderer.getZ(layerNum);
         var layerSpeeds = GCODE.gCodeReader.getModelInfo().extrusionSpeedsByLayer;
-        var renderOptions = GCODE.renderer.getOptions();
+        var max = GCODE.gCodeReader.getModelInfo().max;
+        var min = GCODE.gCodeReader.getModelInfo().min;
         var gCodeOptions = GCODE.gCodeReader.getOptions();
-        var colors = renderOptions["colorLine"];
-        var colorLen = renderOptions['colorLineLen'];
-        var speedIndex = 0;
         var output = [];
+        var sortMe = {};
+        var sortKeys = [];
         var i;
-		var spd;
+        var spd;
+        var scale
 
         output.push("Extrude speeds in mm^3/sec:");
         for(i=0;i<layerSpeeds[z].length;i++){
             if(typeof(layerSpeeds[z][i])==='undefined'){continue;}
-            speedIndex = i;
-            if(speedIndex > colorLen -1){speedIndex = speedIndex % (colorLen-1);}
 
-			spd = parseFloat(layerSpeeds[z][i]);
-			if(!gCodeOptions.volumetricE) {
-				spd *= Math.PI * Math.pow(gCodeOptions.filamentDia / 2, 2);
-			}
-
-            output.push("<div id='colorBox"+i+"' class='colorBox' style='background-color: "+colors[speedIndex] + "'></div>  = " + spd.toFixed(3) +"mm^3/sec");
+            spd = parseFloat(layerSpeeds[z][i]);
+            scale = (spd - min.extrSpeed)/(max.extrSpeed-min.extrSpeed);
+            if(!gCodeOptions.volumetricE) {
+                spd *= Math.PI * Math.pow(gCodeOptions.filamentDia / 2, 2);
+            }
+            spd = spd.toFixed(1);
+            sortMe[spd] = "<div id='colorBox"+i+"' class='colorBox' style='background-color: " + GCODE.renderer.getGradientColor(scale) + "'></div>  = " + spd +"mm^3/sec";
+        }
+        sortKeys = Object.keys(sortMe).sort((a, b) => b - a);
+        for(i=0;i<sortKeys.length;i++) {
+            output.push(sortMe[sortKeys[i]]);
         }
 
         return output;
