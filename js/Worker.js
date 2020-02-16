@@ -130,6 +130,10 @@
         var type;
         var printTimeAdd=0;
 //        var moveTime=0;
+        // Clean up data from previous model
+        speedsByLayer = {extrude: {}, retract: {}, move: {}};
+        volSpeedsByLayer = {};
+        extrusionSpeedsByLayer = {};
 
         for(i=0;i<model.length;i++){
             cmds = model[i];
@@ -241,11 +245,6 @@
                         extrusionSpeedsByLayer[cmds[j].prevZ] = [];
                     }
                     if(extrusionSpeedsByLayer[cmds[j].prevZ].indexOf(extrusionSpeed) === -1){
-                        // Array elements will NOT necessarily be set to undefined when
-                        // assigning beyond the current array length, so do it explicitly.
-                        for(var k=extrusionSpeedsByLayer[cmds[j].prevZ].length; k<volIndex; k++) {
-                            extrusionSpeedsByLayer[cmds[j].prevZ].push(undefined);
-                        }
                         extrusionSpeedsByLayer[cmds[j].prevZ][volIndex] = extrusionSpeed;
                     }
                 }
