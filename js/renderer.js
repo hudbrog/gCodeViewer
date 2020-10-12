@@ -11,7 +11,7 @@ GCODE.renderer = (function(){
     var canvas;
     var ctx;
     var zoomFactor= 3, zoomFactorDelta = 0.4;
-    var gridSizeX=200,gridSizeY=200,gridStep=10;
+    var gridStep=10;
     var ctxHeight, ctxWidth;
     var prevX=0, prevY=0;
 
@@ -45,7 +45,9 @@ GCODE.renderer = (function(){
         actualWidth: false,
         renderErrors: false,
         renderAnalysis: false,
-        speedDisplayType: displayType.speed
+        speedDisplayType: displayType.speed,
+        bedSizeX: 500, 
+        bedSizeY: 500, 
     };
 
     var offsetModelX=0, offsetModelY=0;
@@ -228,16 +230,16 @@ GCODE.renderer = (function(){
         }
 
         ctx.beginPath();
-        for(i=0;i<=gridSizeX;i+=gridStep){
+        for(i=0;i<=renderOptions["bedSizeX"];i+=gridStep){
             ctx.moveTo(i*zoomFactor-offsetX, 0-offsetY);
-            ctx.lineTo(i*zoomFactor-offsetX, -gridSizeY*zoomFactor-offsetY);
+            ctx.lineTo(i*zoomFactor-offsetX, -renderOptions["bedSizeY"]*zoomFactor-offsetY);
         }
         ctx.stroke();
 
         ctx.beginPath();
-        for(i=0;i<=gridSizeY;i+=gridStep){
+        for(i=0;i<=renderOptions["bedSizeY"];i+=gridStep){
             ctx.moveTo(0-offsetX, -i*zoomFactor-offsetY);
-            ctx.lineTo(gridSizeX*zoomFactor-offsetX, -i*zoomFactor-offsetY);
+            ctx.lineTo(renderOptions["bedSizeX"]*zoomFactor-offsetX, -i*zoomFactor-offsetY);
         }
         ctx.stroke();
 
@@ -447,7 +449,7 @@ GCODE.renderer = (function(){
         init: function(){
             startCanvas();
             initialized = true;
-            ctx.translate((canvas.width - gridSizeX*zoomFactor)/2,gridSizeY*zoomFactor+(canvas.height - gridSizeY*zoomFactor)/2);
+            ctx.translate((canvas.width - renderOptions["bedSizeX"]*zoomFactor)/2,renderOptions["bedSizeY"]*zoomFactor+(canvas.height - renderOptions["bedSizeY"]*zoomFactor)/2);
         },
         setOption: function(options){
             for(var opt in options){
@@ -517,8 +519,8 @@ GCODE.renderer = (function(){
             min = mdlInfo.min;
 //            console.log(speeds);
 //            console.log(mdlInfo.min.x + ' ' + mdlInfo.modelSize.x);
-            offsetModelX = (gridSizeX/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
-            offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-gridSizeY/2*zoomFactor;
+            offsetModelX = (renderOptions["bedSizeX"]/2-(mdlInfo.min.x+mdlInfo.modelSize.x/2))*zoomFactor;
+            offsetModelY = (mdlInfo.min.y+mdlInfo.modelSize.y/2)*zoomFactor-renderOptions["bedSizeY"]/2*zoomFactor;
             if(ctx)ctx.translate(offsetModelX, offsetModelY);
             var scaleF = mdlInfo.modelSize.x>mdlInfo.modelSize.y?(canvas.width)/mdlInfo.modelSize.x/zoomFactor:(canvas.height)/mdlInfo.modelSize.y/zoomFactor;
             var pt = ctx.transformedPoint(canvas.width/2,canvas.height/2);
