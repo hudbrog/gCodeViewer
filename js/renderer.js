@@ -41,6 +41,7 @@ GCODE.renderer = (function(){
         moveModel: true,
         differentiateColors: true,
         showNextLayer: false,
+        showGrid: true,
         alpha: false,
         actualWidth: false,
         renderErrors: false,
@@ -220,6 +221,7 @@ GCODE.renderer = (function(){
     };
 
     var drawGrid = function() {
+        if (!renderOptions["showGrid"]) return;
         var i;
         ctx.strokeStyle = renderOptions["colorGrid"];
         ctx.lineWidth = 1;

@@ -482,6 +482,7 @@ GCODE.ui = (function(){
 				actualWidth: document.getElementById('thickExtrusionCheckbox').checked,
 				alpha: document.getElementById('alphaCheckbox').checked,
                 showNextLayer: document.getElementById('showNextLayer').checked,
+                showGrid: document.getElementById('showGrid').checked,
                 
 				bedSizeX: Number($('#bedSizeX').val()) || 200,
 				bedSizeY: Number($('#bedSizeY').val()) || 200,
