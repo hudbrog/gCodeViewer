@@ -462,6 +462,25 @@ GCODE.ui = (function(){
                 $('#errAnalyseTab').removeClass('hide');
             }
 
+			var InFilemame = new RegExp('[\?&]filename=([^&#]*)').exec(window.location.href);
+			var ValidFilename = !/[^a-z0-9_.@()-]/i.test(InFilemame[1]);
+			if(ValidFilename === false) InFilemame = null;
+			if(InFilemame !== null){
+				var LocalGCODE = $.get( "gcode\\" + InFilemame[1], "", null, "text")
+				.done(function() {
+					var theFile = [];
+					chooseAccordion('progressAccordionTab');
+					setProgress('loadProgress', 0);
+					setProgress('analyzeProgress', 0);
+					theFile.target = [];
+					theFile.target.result = LocalGCODE.responseText;
+					LocalGCODE.responseText = null;
+					GCODE.gCodeReader.loadFile(theFile);
+				})
+				.fail(function() {
+					alert( "Error loading GCODE file!" );					
+				});
+			}
         },
 
         processOptions: function(){
