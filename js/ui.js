@@ -158,7 +158,10 @@ GCODE.ui = (function(){
 
         var aggFilamentUsed = 0.0;
         for (var x = 0; x <= layerNum; x++) {
-          aggFilamentUsed += parseFloat(GCODE.gCodeReader.getLayerFilament(GCODE.renderer.getZ(x)).toFixed(2));
+          layerFilament = GCODE.gCodeReader.getLayerFilament(GCODE.renderer.getZ(x))
+          if (layerFilament) {
+            aggFilamentUsed += parseFloat(layerFilament.toFixed(2));
+          }
         }
         aggFilamentUsed = aggFilamentUsed.toFixed(2)
 
