@@ -474,7 +474,6 @@ GCODE.ui = (function(){
 				nozzleDia: Number($('#nozzleDia').val()) || 0.4,
 				hourlyCost: Number($('#hourlyCost').val()) || 1.0,
 				filamentPrice: Number($('#filamentPrice').val()) || 0.05,
-
 				filamentType: document.getElementById('plasticABS').checked ? 'ABS' : 'PLA',
 			});
 
@@ -485,7 +484,11 @@ GCODE.ui = (function(){
 				differentiateColors: document.getElementById('differentiateColorsCheckbox').checked,
 				actualWidth: document.getElementById('thickExtrusionCheckbox').checked,
 				alpha: document.getElementById('alphaCheckbox').checked,
-				showNextLayer: document.getElementById('showNextLayer').checked,
+                showNextLayer: document.getElementById('showNextLayer').checked,
+                showGrid: document.getElementById('showGrid').checked,
+                
+				bedSizeX: Number($('#bedSizeX').val()) || 200,
+				bedSizeY: Number($('#bedSizeY').val()) || 200,
 			});
 
             showGCode = document.getElementById('showGCodeCheckbox').checked;

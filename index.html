@@ -194,6 +194,7 @@
                         <label for="alphaCheckbox"><input type="checkbox" id="alphaCheckbox" value="10"  onclick="GCODE.ui.processOptions()" > Render lines slightly transparent</label>
                         <!--<label for="widthModifier">Width modifier: <input type="text" value="2" id="widthModifier" onchange="GCODE.ui.processOptions()"/></label>-->
                         <label for="showNextLayer"><input type="checkbox" id="showNextLayer" value="9"  onclick="GCODE.ui.processOptions()" > Show +1 layer</label>
+                        <label for="showGrid"><input type="checkbox" id="showGrid" value="1"  onclick="GCODE.ui.processOptions()" checked> Show grid</label>
                     </div>
                 </div>
             </div>
@@ -230,6 +231,8 @@
 						<label for="volumetricE"><input type="checkbox" id="volumetricE" onclick="GCODE.ui.processOptions()"> Volumetric E</label>
                         <label for="hourlyCost">Printer hourly cost: <input type="text" value="1.00" id="hourlyCost" onchange="GCODE.ui.processOptions()"/></label>
                         <label for="filamentPrice">Filament price(per gram): <input type="text" value="0.05" id="filamentPrice" onchange="GCODE.ui.processOptions()"/></label>
+                        <label for="bedSizeX">Bed size X <input type="text" value="200" id="bedSizeX" onchange="GCODE.ui.processOptions()"/></label> 
+                        <label for="bedSizeY">Bed size Y <input type="text" value="200" id="bedSizeY" onchange="GCODE.ui.processOptions()"/></label> 
                     </div>
                 </div>
             </div>
