@@ -1,0 +1,9 @@
+version: '3.3'
+services:
+    gcodews:
+        image: nginx
+        ports:
+            - '8080:80'
+        image: gcodews
+        volumes:
+            - .:/usr/share/nginx/html
