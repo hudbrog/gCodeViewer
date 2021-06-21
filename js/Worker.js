@@ -289,7 +289,9 @@
         var j, layer= 0, extrude=false, prevRetract= {e: 0, a: 0, b: 0, c: 0}, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false, volPerMM, extruder;
         var dcExtrude=false;
         var assumeNonDC = false;
-
+        var nozzle_temp=0;
+        var bed_temp=0;
+        
         for(var i=0;i<gcode.length;i++){
     //            for(var len = gcode.length- 1, i=0;i!=len;i++){
             x=undefined;
@@ -409,6 +411,13 @@
                 dcExtrude=true;
             }else if(gcode[i].match(/^(?:M103)/i)){
                 dcExtrude=false;
+            }else if(gcode[i].match(/^(?:M104)/i)){
+                //set extruder temp 
+                /*
+                    Dnnn Display temperature (Only Prusa)
+    Snnn Target temperature
+    Rnnn Idle temperature (Only MK4duo)
+    */
             }else if(gcode[i].match(/^(?:G92)/i)){
                 var args = gcode[i].split(/\s/);
                 for(j=0;j<args.length;j++){
