@@ -250,6 +250,9 @@ GCODE.gCodeReader = (function(){
             totalFilament = msg.totalFilament;
             filamentByLayer = msg.filamentByLayer;
             filamentByExtruder = msg.filamentByExtruder;
+            tempNozzleByLayer=msg.tempNozzleByLayer;
+            tempBedByLayer=msg.tempBedByLayer;
+            temperatureUnit=msg.temperatureUnit;
             speeds = msg.speeds;
             speedsByLayer = msg.speedsByLayer;
             printTime = msg.printTime;
@@ -279,6 +282,21 @@ GCODE.gCodeReader = (function(){
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
+        },
+        getNozzleTemp: function(z){
+            if('undefined' !== typeof tempNozzleByLayer[z])
+                return tempNozzleByLayer[z];
+            else
+                return 0;
+        },
+        getBedTemp: function(z){
+            if('undefined' !== typeof tempBedByLayer[z])
+                return tempBedByLayer[z];
+            else
+                return 0;
+        },
+        getTemperatureUnit(){
+            return temperatureUnit;
         },
         getLayerSpeeds: function(z){
           return speedsByLayer[z]?speedsByLayer[z]:{};

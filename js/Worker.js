@@ -18,6 +18,9 @@
     var min = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
+    var tempNozzleByLayer = [];
+    var tempBedByLayer = [];
+    var temperatureUnit = "C (default)"; //or "F"
     var filamentByExtruder = {};
     var totalFilament=0;
     var printTime=0;
@@ -87,6 +90,9 @@
                 modelSize: modelSize,
                 totalFilament:totalFilament,
                 filamentByLayer: filamentByLayer,
+                tempNozzleByLayer: tempNozzleByLayer,
+                tempBedByLayer: tempBedByLayer,
+                temperatureUnit: temperatureUnit,
                 filamentByExtruder: filamentByExtruder,
                 printTime: printTime,
                 layerHeight: layerHeight,
@@ -411,13 +417,65 @@
                 dcExtrude=true;
             }else if(gcode[i].match(/^(?:M103)/i)){
                 dcExtrude=false;
-            }else if(gcode[i].match(/^(?:M104)/i)){
-                //set extruder temp 
+            }else if(gcode[i].match(/^(?:M149)/i)){
+                //get Temperature unit
+                var args = gcode[i].split(/\s/);
+                temperatureUnit=args[1];
+                console.log("found temp unit: "+gcode[i]+" in layer: "+layer+"\n");
+            }else if(gcode[i].match(/^(?:M104|M109)/i)){
+                //M104 set extruder temp 
                 /*
                     Dnnn Display temperature (Only Prusa)
-    Snnn Target temperature
-    Rnnn Idle temperature (Only MK4duo)
-    */
+                    Snnn Target temperature
+                    Rnnn Idle temperature (Only MK4duo)
+                */
+                var args = gcode[i].split(/\s/);
+                //M104 xnnn ...
+                nozzle_temp=Number(args[1].substr(1));
+                console.log("found temp: "+gcode[i]+" for layer: "+layer+"\n");
+
+                //M109 set extruder temp and wait
+                /*
+                Snnn minimum target temperature, waits until heating
+                Rnnn maximum target temperature, waits until cooling (Sprinter)
+                Rnnn accurate target temperature, waits until heating and cooling (Marlin and MK4duo)
+                Tn tool number (RepRapFirmware and Klipper), optional
+                */
+                var args = gcode[i].split(/\s/);
+                //M109 xnnn ...
+/*               args.forEach(function(item, index, array){
+                console.log("index/arg: " + index +"/"+ item);
+               });
+*/
+                nozzle_temp=Number(args[1].substr(1));
+                console.log("found temp: " + gcode[i] + " for layer: "+ layer +"\n");
+//other temperatures:
+            }else if(gcode[i].match(/^(?:M140|M190)/i)){
+                //set bed temp 
+                /*
+                M140: Set Bed Temperature (Fast)
+                    Pnnn Bed heater index1
+                    Hnnn Heater number1
+                    Tnnn Tool number2
+                    Snnn Active/Target temperature
+                    Rnnn Standby temperature1 2
+                
+                M190: Wait for bed temperature to reach target temp
+                    Snnn minimum target temperature, waits until heating
+                    Rnnn accurate target temperature, waits until heating and cooling (Marlin and Prusa)
+                */
+                var args = gcode[i].split(/\s/);
+                //M140 xnnn ...
+                bed_temp=Number(args[1].substr(1));
+                console.log("found bed temp: "+gcode[i]+"for layer: "+layer+"\n");
+    /*
+
+                M191: Wait for chamber temperature to reach target temp
+                M149: set temp units
+                    C Flag to treat temperature as degrees Celsius
+                    K Flag to treat temperature as Kelvin
+                
+                */
             }else if(gcode[i].match(/^(?:G92)/i)){
                 var args = gcode[i].split(/\s/);
                 for(j=0;j<args.length;j++){
@@ -518,6 +576,11 @@
                 sendMultiLayerZ[sendMultiLayerZ.length] = sendLayerZ;
                 sendLayer = undefined;
                 sendLayerZ = undefined;
+
+                //store the last known nozzle temp
+                tempNozzleByLayer.splice(layer,0,nozzle_temp);
+                tempBedByLayer.splice(layer,0,bed_temp);
+
             }
         }
 //        sendMultiLayer[sendMultiLayer.length] = layer;
