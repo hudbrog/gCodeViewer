@@ -154,6 +154,9 @@ GCODE.ui = (function(){
         var segments = GCODE.renderer.getLayerNumSegments(layerNum);
         var renderOptions = GCODE.renderer.getOptions();
         var filament = GCODE.gCodeReader.getLayerFilament(z);
+        var tempNoozle = GCODE.gCodeReader.getNozzleTemp(layerNum);
+        var tempBed = GCODE.gCodeReader.getBedTemp(layerNum);
+        var tempUnit = GCODE.gCodeReader.getTemperatureUnit();
         var output = [];
 
         var aggFilamentUsed = 0.0;
@@ -167,6 +170,9 @@ GCODE.ui = (function(){
 
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
+        output.push("Nozzle temp: " + tempNoozle);
+        output.push("Bed temp: " + tempBed);
+        output.push("Temperature unit: " + tempUnit);
         output.push("GCODE commands in layer: " + segments);
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
         output.push("Filament used, summed (mm): " + aggFilamentUsed);
@@ -461,6 +467,25 @@ GCODE.ui = (function(){
             if(window.location.search.match(/new/)){
                 $('#errAnalyseTab').removeClass('hide');
             }
+			var InFilemame = new RegExp('[\?&]filename=([^&#]*)').exec(window.location.href);
+			var ValidFilename = !/[^a-z0-9_.@()-]/i.test(InFilemame[1]);
+			if(ValidFilename === false) InFilemame = null;
+			if(InFilemame !== null){
+				var LocalGCODE = $.get( "gcode\\" + InFilemame[1], "", null, "text")
+				.done(function() {
+					var theFile = [];
+					chooseAccordion('progressAccordionTab');
+					setProgress('loadProgress', 0);
+					setProgress('analyzeProgress', 0);
+					theFile.target = [];
+					theFile.target.result = LocalGCODE.responseText;
+					LocalGCODE.responseText = null;
+					GCODE.gCodeReader.loadFile(theFile);
+				})
+				.fail(function() {
+					alert( "Error loading GCODE file!" );					
+				});
+			}
 
         },
 

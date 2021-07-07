@@ -42,7 +42,7 @@ GCODE.gCodeReader = (function(){
         gcode = [];
         var i;
         for(i=0;i<lines.length;i++){
-            if(lines[i].match(/^(G0|G1|G90|G91|G92|M82|M83|G28)/i))gcode.push(lines[i]);
+            if(lines[i].match(/^(G0|G1|G90|G91|G92|M82|M83|G28|M104|M109|M140|M190)/i))gcode.push(lines[i]); //M104/M109 set nozzle temp, M140/M190 set bed temp, M149 sets temperature unit
         }
         lines = [];
 //        console.log("GCode prepared");
@@ -250,6 +250,9 @@ GCODE.gCodeReader = (function(){
             totalFilament = msg.totalFilament;
             filamentByLayer = msg.filamentByLayer;
             filamentByExtruder = msg.filamentByExtruder;
+            tempNozzleByLayer=msg.tempNozzleByLayer;
+            tempBedByLayer=msg.tempBedByLayer;
+            temperatureUnit=msg.temperatureUnit;
             speeds = msg.speeds;
             speedsByLayer = msg.speedsByLayer;
             printTime = msg.printTime;
@@ -279,6 +282,21 @@ GCODE.gCodeReader = (function(){
         },
         getLayerFilament: function(z){
             return filamentByLayer[z];
+        },
+        getNozzleTemp: function(z){
+            if('undefined' !== typeof tempNozzleByLayer[z])
+                return tempNozzleByLayer[z];
+            else
+                return 0;
+        },
+        getBedTemp: function(z){
+            if('undefined' !== typeof tempBedByLayer[z])
+                return tempBedByLayer[z];
+            else
+                return 0;
+        },
+        getTemperatureUnit(){
+            return temperatureUnit;
         },
         getLayerSpeeds: function(z){
           return speedsByLayer[z]?speedsByLayer[z]:{};
