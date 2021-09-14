@@ -8,6 +8,8 @@ GCODE.renderer3d = (function(){
     var modelLoaded=false;
     var model;
     var prevX=0, prevY= 0, prevZ=0;
+    var bedTemp=0;
+    var nozzleTemp=0;
     var sliderHor, sliderVer;
     var object;
     var geometry;
@@ -27,7 +29,8 @@ GCODE.renderer3d = (function(){
     var mouseX = 0, mouseY = 0;
 
     var renderOptions = {
-        showMoves: true,
+        showMoves: false,
+        showTemp: true,
         colorLine: 0x000000,
         colorMove: 0x00ff00,
         rendererType: "webgl"
@@ -58,21 +61,63 @@ GCODE.renderer3d = (function(){
             prevX = cmds[j].x;
             prevY = cmds[j].y;
             prevZ = cmds[j].z;
+            bedTemp = cmds[j].bedTemp;
+            nozzleTemp = cmds[j].nozzleTemp;
         }
     };
 
     var buildModelIteratively = function(){
         var i;
-
-        for(i=0;i<model.length;i+=1){
-            buildModelIteration(i);
-            //TODO: need to remove UI stuff from here
-
-        }
+        var geoMin;
+        var geoMax;
         var lineMaterial = new THREE.LineBasicMaterial({color: renderOptions["colorLine"], lineWidth: 2, opacity: 0.6, fog: false});
-        geometry.computeBoundingBox();
-        object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));
-        var center = new THREE.Vector3().add(geometry.boundingBox.min, geometry.boundingBox.max).divideScalar(2);
+        var lineColor = new THREE.Color('hsl(0, 100%, 50%)');
+        
+        var tempMin=Infinity;
+        var tempMax=-Infinity;
+        var scaleMin=0.999;
+        var scaleMax=0.5;
+        
+        if (renderOptions["showTemp"]){
+            for(var i=0;i<model.length;i+=1){
+                var cmds  = model[i];
+                for(var j=0;j<cmds.length;j++){
+                    if(cmds[j].extrude){
+                        if (cmds[j].nozzleTemp<tempMin){tempMin=cmds[j].nozzleTemp;}
+                        if (cmds[j].nozzleTemp>tempMax){tempMax=cmds[j].nozzleTemp;}
+                    }                    
+                }
+            }
+        }
+                 
+        for(i=0;i<model.length;i+=1){
+            geometry = new THREE.Geometry();
+            buildModelIteration(i);
+            geometry.computeBoundingBox();
+            
+            if (i==0){
+                geoMin=geometry.boundingBox.min;
+                geoMax=geometry.boundingBox.max;
+            }
+            if (geometry.boundingBox.min.x<geoMin.x){geoMin.x=geometry.boundingBox.min.x;}
+            if (geometry.boundingBox.min.y<geoMin.y){geoMin.y=geometry.boundingBox.min.y;}
+            if (geometry.boundingBox.min.z<geoMin.z){geoMin.z=geometry.boundingBox.min.z;}
+            if (geometry.boundingBox.max.x<geoMax.x){geoMax.x=geometry.boundingBox.max.x;}
+            if (geometry.boundingBox.max.y<geoMax.y){geoMax.y=geometry.boundingBox.max.y;}
+            if (geometry.boundingBox.max.z<geoMax.z){geoMax.z=geometry.boundingBox.max.z;}
+            
+            if (renderOptions["showTemp"]){
+              if (nozzleTemp<tempMin){nozzleTemp=tempMin;}
+              if (nozzleTemp>tempMax){nozzleTemp=tempMax;}
+              var scaledHue = ((nozzleTemp-tempMin)*(scaleMax-scaleMin)/(tempMax-tempMin))+scaleMin;
+              if (tempMin==tempMax){scaledHue=0.7;}//Fixed blue color if no temp change so user knows show temp checkbox is working
+              lineColor.setHSV(scaledHue,1,1);
+              lineMaterial = new THREE.LineBasicMaterial({color: lineColor, lineWidth: 2, opacity: 0.6, fog: false});
+            }
+            object.add(new THREE.Line(geometry, lineMaterial, THREE.LinePieces));            
+        }
+        
+        var center = new THREE.Vector3().add(geoMin, geoMax).divideScalar(2);
         object.position = center.multiplyScalar(-1);
 
     }
