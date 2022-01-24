@@ -154,6 +154,9 @@ GCODE.ui = (function(){
         var segments = GCODE.renderer.getLayerNumSegments(layerNum);
         var renderOptions = GCODE.renderer.getOptions();
         var filament = GCODE.gCodeReader.getLayerFilament(z);
+        var tempNoozle = GCODE.gCodeReader.getNozzleTemp(layerNum);
+        var tempBed = GCODE.gCodeReader.getBedTemp(layerNum);
+        var tempUnit = GCODE.gCodeReader.getTemperatureUnit();
         var output = [];
 
         var aggFilamentUsed = 0.0;
@@ -167,6 +170,9 @@ GCODE.ui = (function(){
 
         output.push("Layer number: " + layerNum);
         output.push("Layer height (mm): " + z);
+        output.push("Nozzle temp: " + tempNoozle);
+        output.push("Bed temp: " + tempBed);
+        output.push("Temperature unit: " + tempUnit);
         output.push("GCODE commands in layer: " + segments);
         output.push("Filament used by layer (mm): " + filament.toFixed(2));
         output.push("Filament used, summed (mm): " + aggFilamentUsed);
@@ -461,7 +467,6 @@ GCODE.ui = (function(){
             if(window.location.search.match(/new/)){
                 $('#errAnalyseTab').removeClass('hide');
             }
-
         },
 
         processOptions: function(){
@@ -486,6 +491,10 @@ GCODE.ui = (function(){
 				actualWidth: document.getElementById('thickExtrusionCheckbox').checked,
 				alpha: document.getElementById('alphaCheckbox').checked,
 				showNextLayer: document.getElementById('showNextLayer').checked,
+			});
+            
+			GCODE.renderer3d.setOption({
+				showTemp:  document.getElementById('show3DNozzleTempCheckbox').checked,
 			});
 
             showGCode = document.getElementById('showGCodeCheckbox').checked;

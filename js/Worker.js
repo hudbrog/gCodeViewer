@@ -18,6 +18,9 @@
     var min = {x: undefined, y: undefined, z: undefined, speed: undefined, volSpeed: undefined, extrSpeed: undefined};
     var modelSize = {x: undefined, y: undefined, z: undefined};
     var filamentByLayer = {};
+    var tempNozzleByLayer = [];
+    var tempBedByLayer = [];
+    var temperatureUnit = "C (default)";
     var filamentByExtruder = {};
     var totalFilament=0;
     var printTime=0;
@@ -87,6 +90,9 @@
                 modelSize: modelSize,
                 totalFilament:totalFilament,
                 filamentByLayer: filamentByLayer,
+                tempNozzleByLayer: tempNozzleByLayer,
+                tempBedByLayer: tempBedByLayer,
+                temperatureUnit: temperatureUnit,
                 filamentByExtruder: filamentByExtruder,
                 printTime: printTime,
                 layerHeight: layerHeight,
@@ -289,6 +295,8 @@
         var j, layer= 0, extrude=false, prevRetract= {e: 0, a: 0, b: 0, c: 0}, retract=0, x, y, z=0, f, prevZ=0, prevX, prevY,lastF=4000, prev_extrude = {a: undefined, b: undefined, c: undefined, e: undefined, abs: undefined}, extrudeRelative=false, volPerMM, extruder;
         var dcExtrude=false;
         var assumeNonDC = false;
+        var nozzle_temp=0;
+        var bed_temp=0;
 
         for(var i=0;i<gcode.length;i++){
     //            for(var len = gcode.length- 1, i=0;i!=len;i++){
@@ -393,7 +401,7 @@
                 }
                 if(!model[layer])model[layer]=[];
                 //if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0)
-                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM};
+                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), volPerMM: typeof(volPerMM)==='undefined'?-1:volPerMM, bedTemp: bed_temp, nozzleTemp: nozzle_temp};
                 //{x: x, y: y, z: z, extrude: extrude, retract: retract, noMove: false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: i};
                 if(typeof(x) !== 'undefined') prevX = x;
                 if(typeof(y) !== 'undefined') prevY = y;
@@ -409,6 +417,15 @@
                 dcExtrude=true;
             }else if(gcode[i].match(/^(?:M103)/i)){
                 dcExtrude=false;
+            }else if(gcode[i].match(/^(?:M149)/i)){
+                var args = gcode[i].split(/\s/);
+                temperatureUnit=args[1];
+            }else if(gcode[i].match(/^(?:M104|M109)/i)){
+                var args = gcode[i].split(/\s/);
+                nozzle_temp=Number(args[1].substr(1));
+            }else if(gcode[i].match(/^(?:M140|M190)/i)){
+                var args = gcode[i].split(/\s/);
+                bed_temp=Number(args[1].substr(1));
             }else if(gcode[i].match(/^(?:G92)/i)){
                 var args = gcode[i].split(/\s/);
                 for(j=0;j<args.length;j++){
@@ -442,7 +459,7 @@
                 }
                 if(!model[layer])model[layer]=[];
                 if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined')
-                    model[layer][model[layer].length] = {x: parseFloat(x), y: parseFloat(y), z: parseFloat(z), extrude: extrude, retract: parseFloat(retract), noMove: true, extrusion: 0, extruder: extruder, prevX: parseFloat(prevX), prevY: parseFloat(prevY), prevZ: parseFloat(prevZ), speed: parseFloat(lastF), gcodeLine: parseFloat(i)};
+                    model[layer][model[layer].length] = {x: parseFloat(x), y: parseFloat(y), z: parseFloat(z), extrude: extrude, retract: parseFloat(retract), noMove: true, extrusion: 0, extruder: extruder, prevX: parseFloat(prevX), prevY: parseFloat(prevY), prevZ: parseFloat(prevZ), speed: parseFloat(lastF), gcodeLine: parseFloat(i), bedTemp: bed_temp, nozzleTemp: nozzle_temp};
             }else if(gcode[i].match(/^(?:G28)/i)){
                 var args = gcode[i].split(/\s/);
                 for(j=0;j<args.length;j++){
@@ -492,7 +509,7 @@
 
                 if(!model[layer])model[layer]=[];
 //                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined'||retract!=0)
-                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i)};
+                    model[layer][model[layer].length] = {x: Number(x), y: Number(y), z: Number(z), extrude: extrude, retract: Number(retract), noMove: false, extrusion: (extrude||retract)?Number(prev_extrude["abs"]):0, extruder: extruder, prevX: Number(prevX), prevY: Number(prevY), prevZ: Number(prevZ), speed: Number(lastF), gcodeLine: Number(i), bedTemp: bed_temp, nozzleTemp: nozzle_temp};
 //                if(typeof(x) !== 'undefined' || typeof(y) !== 'undefined' ||typeof(z) !== 'undefined') model[layer][model[layer].length] = {x: x, y: y, z: z, extrude: extrude, retract: retract, noMove:false, extrusion: (extrude||retract)?prev_extrude["abs"]:0, prevX: prevX, prevY: prevY, prevZ: prevZ, speed: lastF, gcodeLine: parseFloat(i)};
             }
             if(typeof(sendLayer) !== "undefined"){
@@ -509,6 +526,8 @@
                 sendMultiLayerZ[sendMultiLayerZ.length] = sendLayerZ;
                 sendLayer = undefined;
                 sendLayerZ = undefined;
+                tempNozzleByLayer.splice(layer,0,nozzle_temp);
+                tempBedByLayer.splice(layer,0,bed_temp);
             }
         }
 //        sendMultiLayer[sendMultiLayer.length] = layer;
