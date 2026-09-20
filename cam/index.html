@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>V-carve CAM</title><link rel="icon" href="data:,">
+<!-- Google tag: basic visit analytics on the published CAM page. -->
+<script>
+if (location.hostname === 'gcode.ws') {
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function () { window.dataLayer.push(arguments); };
+  gtag('js', new Date());
+  gtag('config', 'G-VSG4H1X1HC');
+  const analytics = document.createElement('script');
+  analytics.async = true;
+  analytics.src = 'https://www.googletagmanager.com/gtag/js?id=G-VSG4H1X1HC';
+  document.head.appendChild(analytics);
+}
+</script>
+<style>html,body{margin:0;width:100%;height:100%;background:#151d26;color:#eee;font:16px system-ui}canvas{width:100%;height:100%;display:block}#startup{position:absolute;top:20px;left:20px;white-space:pre-wrap}</style>
+</head><body><div id="startup" role="status">Loading Flat V-carve workspace…</div>
+<!-- tabindex keeps the canvas focusable so egui receives keyboard and IME input. -->
+<canvas id="cam" tabindex="0" aria-label="Flat V-carve workspace"></canvas>
+<script type="module">
+import init, * as gui from './pkg/cam_gui.js';
+const begin = performance.now();
+try {
+  if (!navigator.gpu) throw new Error('This application requires a WebGPU-capable browser.');
+  await init();
+  if (gui.protocol() !== 'cam-gui-retained-5') throw new Error('UI/worker protocol mismatch; reload matching assets.');
+  globalThis.CAM_GUI = gui;
+  // Admit the whole drop before eframe asynchronously reads each File. Without
+  // this guard a multi-file drop can arrive as separate one-file Rust frames.
+  window.addEventListener('drop',event=>{
+    const files=event.dataTransfer?.files;
+    if(files?.length && (files.length!==1 || files[0].size>8_000_000)) {
+      event.preventDefault();event.stopImmediatePropagation();
+      gui.receive_event(JSON.stringify({Notice:'Drop one SVG or JSON job of at most 8 MB; current draft retained'}));
+    }
+  },true);
+  await gui.start('cam');
+  document.getElementById('startup').remove();
+  globalThis.CAM_GUI_STARTUP_MS = performance.now()-begin;
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(async registration=>{
+      const worker=registration.installing??registration.waiting??registration.active;
+      if(!worker)throw new Error('No offline worker was created');
+      if(worker.state==='activated')return;
+      await new Promise((resolve,reject)=>{
+        const check=()=>{
+          if(worker.state==='activated'){worker.removeEventListener('statechange',check);resolve();}
+          else if(worker.state==='redundant'){worker.removeEventListener('statechange',check);reject(new Error('Offline asset installation failed'));}
+        };
+        worker.addEventListener('statechange',check);check();
+      });
+    })
+      .then(()=>gui.receive_event(JSON.stringify({OfflineStatus:'Offline shell cache ready'})))
+      .catch(error=>gui.receive_event(JSON.stringify({OfflineStatus:`Offline shell unavailable: ${error}`})));
+  }
+} catch (error) { document.getElementById('startup').textContent = String(error); }
+</script></body></html>

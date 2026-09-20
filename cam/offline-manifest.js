@@ -1,0 +1,1 @@
+self.CAM_GUI_OFFLINE={"version":"bf604d8cbf5591f205242d66cfa30ecc5c64c6241c7e97272eee11274ad7ecee","assets":["./","./index.html","./pkg/cam_gui.js","./pkg/cam_gui_bg.wasm","./pkg/snippets/cam-gui-ae37942e68c3299e/web/ports.js","./recovery-store.js","./worker.js"]};
