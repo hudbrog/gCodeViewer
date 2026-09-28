@@ -1,0 +1,38 @@
+{
+  "name": "app",
+  "version": "1.0.0",
+  "description": "gCodeVisualizer - a web-based visual gcode viewer and analyzer.\r Available online at http://gcode.ws/",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "start": "sirv public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hudbrog/gCodeViewer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hudbrog/gCodeViewer/issues"
+  },
+  "homepage": "https://github.com/hudbrog/gCodeViewer#readme",
+  "devDependencies": {
+    "@types/uuid": "^10.0.0",
+    "rollup": "^2.79.2",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-css-only": "^4.5.2",
+    "rollup-plugin-livereload": "^2.0.5",
+    "rollup-plugin-resolve": "^0.0.1-predev.1",
+    "rollup-plugin-svelte": "^7.2.2",
+    "rollup-plugin-terser": "^7.0.2",
+    "sirv-cli": "^3.0.1",
+    "svelte": "^5.33.1",
+    "uuid": "^11.1.0"
+  }
+}

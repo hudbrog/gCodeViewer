@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset='utf-8'>
+	<meta name='viewport' content='width=device-width,initial-scale=1'>
+
+	<title>gcode viewer - online gcode viewer and analyzer in your browser!</title>
+	<meta name="description" content="Visual GCode viewer and analyzer in your browser. No need to upload you GCode anywhere, everything is done locally. (Svelte Edition)" />
+	<meta name="keywords" content="GCode,g-code,viewer,online,javascript,svelte" />
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<meta name="language" content="english" />
+
+	<!-- Favicon and other links from original -->
+	<link rel="shortcut icon" type="image/vnd.microsoft.icon" href="favicon.ico" />
+	<!-- <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" /> -->
+	<!-- <link rel="meta" type="application/rdf+xml" title="Dublin" href="/dublin.rdf" /> -->
+	<!-- <link rel="canonical" href="http://gcode.ws/" /> -->
+
+
+	<!-- Stylesheets from original, plus global.css for Svelte -->
+	<!-- Removed: <link rel="stylesheet" type="text/css" href="css/cupertino/jquery-ui-1.9.0.custom.css" media="screen" /> -->
+	<link rel="stylesheet" type="text/css" href="css/bootstrap.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="lib/codemirror.css" media="screen" />
+	<link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+	
+	<link rel='stylesheet' href='/global.css'>
+	<link rel='stylesheet' href='/build/bundle.css'>
+
+	<!-- OG Meta Tags from original -->
+	<meta property="og:title" content="gCodeViewer - Svelte Edition" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="http://gcode.ws" /> <!-- Consider updating if domain changes -->
+	<meta property="og:image" content="http://gcode.ws/screenshot.jpg" />
+	<meta property="og:site_name" content="Online GCode Viewer (Svelte)" />
+	<!-- <meta property="fb:admins" content="1537520789" /> -->
+
+
+	<!-- External JS Libraries (order might matter for dependencies) -->
+	<!-- Removed: <script type="text/javascript" src="lib/jquery-1.8.2.js"></script> -->
+	<!-- Removed: <script type="text/javascript" src="lib/jquery-ui-1.9.0.custom.js"></script> -->
+	<script type="text/javascript" src="lib/codemirror.js"></script>
+	<script type="text/javascript" src="lib/mode_gcode/gcode_mode.js"></script>
+	<script type="text/javascript" src="lib/three.js"></script>
+	<!-- Removed: <script type="text/javascript" src="lib/bootstrap.js"></script> -->
+	<script type="text/javascript" src="lib/modernizr.custom.09684.js"></script>
+	<script type="text/javascript" src="lib/TrackballControls.js"></script> <!-- Depends on THREE.js -->
+	<script type="text/javascript" src="lib/zlib.min.js"></script>
+
+	<!-- Core GCode Logic Scripts (order might matter) -->
+	<script type="text/javascript" src="js/gCodeReader.js"></script>
+	<script type="text/javascript" src="js/renderer.js"></script>
+	<script type="text/javascript" src="js/analyzer.js"></script>
+	<script type="text/javascript" src="js/renderer3d.js"></script>
+	<!-- Note: js/ui.js is intentionally omitted as Svelte replaces it -->
+	<!-- Note: js/Worker.js is loaded by the worker itself, not here -->
+
+</head>
+
+<body>
+	<!-- Root element for Svelte app -->
+	<div id="app"></div>
+
+	<!-- Svelte app bundle -->
+	<script defer src='/build/bundle.js'></script>
+
+	<!-- Analytics and social scripts from original (optional, can be enabled if needed) -->
+	<!--
+	<script type="text/javascript">
+		var _gaq = _gaq || [];
+		_gaq.push(['_setAccount', 'UA-38437619-1']);
+		_gaq.push(['_trackPageview']);
+		(function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+		})();
+	</script>
+	<div id="fb-root"></div>
+	<script type="text/javascript">(function(d, s, id) {
+		var js, fjs = d.getElementsByTagName(s)[0];
+		if (d.getElementById(id)) return;
+		js = d.createElement(s); js.id = id;
+		js.src = "//connect.facebook.net/ru_RU/all.js#xfbml=1&appId=122261684619414"; // Consider updating appID
+		fjs.parentNode.insertBefore(js, fjs);
+	}(document, 'script', 'facebook-jssdk'));</script>
+	-->
+</body>
+</html>
